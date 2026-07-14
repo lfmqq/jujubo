@@ -51,7 +51,7 @@ system/
 │   │   └── dto/              # 数据传输对象
 │   └── src/main/resources/
 │       ├── application.yml   # 主配置
-│       └── mapper/           # MyBatis XML（如有）
+│       └── mapper/           # MyBatis XML
 ├── vue3-admin/               # 前端项目
 │   ├── src/
 │   │   ├── views/            # 页面（login/dashboard/system/*）
