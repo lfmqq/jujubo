@@ -1,0 +1,75 @@
+:root {
+  /* 主色 */
+  --color-primary: #409EFF;
+  --color-success: #67C23A;
+  --color-warning: #E6A23C;
+  --color-danger: #F56C6C;
+
+  /* 侧边栏 */
+  --sidebar-bg: #304156;
+  --sidebar-text: #bfcbd9;
+  --sidebar-active-text: #409EFF;
+  --sidebar-hover: #263445;
+  --sidebar-width: 220px;
+  --sidebar-collapse-width: 64px;
+
+  /* 导航栏 */
+  --navbar-bg: #fff;
+  --navbar-height: 50px;
+
+  /* 内容区 */
+  --app-bg: #f0f2f5;
+  --card-bg: #fff;
+
+  /* 文字 */
+  --text-primary: #303133;
+  --text-regular: #606266;
+  --text-secondary: #909399;
+
+  /* 边框 */
+  --border-color: #e4e7ed;
+  --border-light: #ebeef5;
+
+  /* 标签页 */
+  --tag-bg: #fff;
+  --tag-text: #666;
+  --tag-hover-bg: #ecf5ff;
+  --tag-active-bg: #ecf5ff;
+  --tag-border: #d9ecff;
+}
+
+/* ========== 暗色模式 ========== */
+html.dark {
+  --app-bg: #141414;
+  --card-bg: #1d1e1f;
+  --navbar-bg: #1d1e1f;
+  --sidebar-bg: #1d1e1f;
+  --sidebar-text: #a3a6ad;
+  --border-color: #363637;
+  --border-light: #2c2c2c;
+  --text-primary: #e5eaf3;
+  --text-regular: #cfd3dc;
+  --text-secondary: #a3a6ad;
+  --tag-bg: #1d1e1f;
+  --tag-text: #a3a6ad;
+  --tag-hover-bg: #262727;
+  --tag-active-bg: #262727;
+  --tag-border: #363637;
+
+  /* Element Plus 暗色变量覆盖 */
+  --el-bg-color: #141414;
+  --el-bg-color-overlay: #1d1e1f;
+  --el-bg-color-page: #0a0a0a;
+  --el-text-color-primary: #e5eaf3;
+  --el-text-color-regular: #cfd3dc;
+  --el-text-color-secondary: #a3a6ad;
+  --el-text-color-placeholder: #636466;
+  --el-border-color: #363637;
+  --el-border-color-light: #2c2c2c;
+  --el-border-color-lighter: #222223;
+  --el-fill-color: #262727;
+  --el-fill-color-light: #2c2c2c;
+  --el-fill-color-blank: #1d1e1f;
+  --el-mask-color: rgba(0, 0, 0, 0.7);
+  color-scheme: dark;
+}
