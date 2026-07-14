@@ -64,6 +64,7 @@ system/
 │   ├── package.json
 │   └── vite.config.js        # 含 /api、/uploads 代理
 └── uploads/                  # 文件上传目录（运行时生成）
+
 ## 三、功能模块
 
 | 模块     | 说明                                                        |
@@ -88,3 +89,7 @@ system/
 - Node.js 16+（推荐 18+）
 - MySQL 8.0+
 - Redis 5.0+
+
+---
+
+## 
