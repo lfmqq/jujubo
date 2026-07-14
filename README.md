@@ -52,7 +52,7 @@ system/
 │   │   └── dto/              # 数据传输对象
 │   └── src/main/resources/
 │       ├── application.yml   # 主配置
-│       └── mapper/           # MyBatis XML
+│       └── mapper/           # MyBatis XML（如有）
 ├── vue3-admin/               # 前端项目
 │   ├── src/
 │   │   ├── views/            # 页面（login/dashboard/system/*）
@@ -63,7 +63,13 @@ system/
 │   │   └── components/       # 公共组件
 │   ├── package.json
 │   └── vite.config.js        # 含 /api、/uploads 代理
+├── sql/                      # 数据库补充脚本
+│   ├── add_notify_table.sql  # 消息通知表 + 测试数据
+│   └── add_notify_menu.sql   # 消息通知菜单
 └── uploads/                  # 文件上传目录（运行时生成）
+```
+
+---
 
 ## 三、功能模块
 
@@ -92,4 +98,4 @@ system/
 
 ---
 
-## 
+## 五、安装与运行
