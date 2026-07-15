@@ -18,6 +18,12 @@
 
 > 💡 本项目会**持续进行优化与部署更新**，线上地址与功能可能随时间迭代，建议以当前线上版本为最新体验。如遇访问异常或功能调整，欢迎反馈。
 
+## 项目截图
+### 登录页面
+![输入图片说明](%E7%99%BB%E5%BD%95%E9%A1%B5%E9%9D%A2.png)
+### 首页
+![输入图片说明](%E9%A6%96%E9%A1%B5.png)
+
 ## 一、项目概览
 
 ```
@@ -248,28 +254,6 @@ npm run preview    # 预览构建产物
    浏览器打开 `http://localhost:5173`。
 4. 生产部署：前端 `npm run build` 后将 `dist/` 由 Nginx 托管（反向代理 `/api` 到后端 8080），后端以 `prod` 环境运行。
 
-### 4.4 IP 归属地解析
-
-操作日志的「IP 归属地」(`operLocation`) 支持**自动降级**的三级策略：
-
-| 优先级 | 方案 | 依赖 | 说明 |
-|--------|------|------|------|
-| 1 | ip2region 离线库 | 把 `ip2region.xdb` 放到 jar 同目录 | 快、无网络，可选 |
-| 2 | ip-api.com 在线 API | **零依赖**，无需任何文件 | 免费，有内存缓存（同 IP 每小时只查一次） |
-| 3 | 降级兜底 | 无 | 以上都不可用时返回「未知」 |
-
-> 代码位于 `IpUtil.getRealAddressByIp()`。**什么都不做也能用**，系统会自动走在线 API。如果追求更快/更稳，才放 xdb 文件启用离线库。
-
-**可选：启用离线库加速**
-```bash
-# 在服务器上 jar 同目录下载 xdb 文件（约 10MB+）
-cd /home/backend  # 你的 jar 所在目录
-curl -L -o ip2region.xdb https://raw.githubusercontent.com/lionsoul2014/ip2region/master/data/ip2region_v4.xdb
-# 校验大小应 > 1MB
-ls -lh ip2region.xdb
-```
-若 GitHub 受限可用 Gitee：`https://gitee.com/lionsoul/ip2region/raw/master/data/ip2region_v4.xdb`
-
 ---
 
 ## 五、默认账号说明
@@ -278,11 +262,3 @@ ls -lh ip2region.xdb
 - 登录需输入图形验证码（由 `/auth/captcha` 生成，存入 Redis，一次性使用）。
 
 ---
-
-## 六、扩展建议
-
-- 补全 SQL 建表脚本并纳入版本控制，便于一键初始化。
-- 引入代码生成器（基于 `sys_menu` / 表元数据）提升 CRUD 开发效率。
-- 增加「字典管理」「定时任务」「在线用户」等常见后台模块。
-- 生产环境将 JWT 密钥、数据库连接等敏感信息移至环境变量或配置中心。
-- 前端可按需接入权限指令（`v-hasPermi`）统一封装到全局，简化按钮权限判断。
