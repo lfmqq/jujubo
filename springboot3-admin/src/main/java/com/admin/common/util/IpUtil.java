@@ -1,10 +1,29 @@
 package com.admin.common.util;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import org.lionsoul.ip2region.xdb.Searcher;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StringUtils;
 
+import java.io.File;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
- * IP 地址工具：兼容 nginx 等反向代理，获取客户端真实 IP。
+ * IP 地址工具：兼容 nginx 等反向代理，获取客户端真实 IP，并解析 IP 归属地。
+ *
+ * 归属地解析策略（自动降级，无需人工切换）：
+ *   1) ip2region 离线库（快速、无网络依赖）—— 把 ip2region.xdb 放到 jar 同目录即可启用
+ *   2) ip-api.com 在线 API（免费，无需密钥）  —— xdb 缺失时自动使用，有缓存每小时同 IP 只查一次
+ *   3) 以上都不可用时返回「未知」
  *
  * 线上部署时，请求通常经过 nginx -> 后端。nginx 需配置转发真实 IP，例如：
  * <pre>
@@ -20,6 +39,132 @@ public class IpUtil {
     private static final String UNKNOWN = "unknown";
     private static final String LOCALHOST_IPV4 = "127.0.0.1";
     private static final String LOCALHOST_IPV6 = "0:0:0:0:0:0:0:1";
+    private static final String UNKNOWN_LOCATION = "未知";
+    private static final String DB_FILE_NAME = "ip2region.xdb";
+
+    // ---------- ip2region 离线库（可选，有 xdb 文件时自动启用） ----------
+
+    /** ip2region 离线搜索器（全量载入内存，线程安全） */
+    private static volatile Searcher searcher;
+
+    static {
+        initSearcher();
+    }
+
+    private static void initSearcher() {
+        byte[] dbBytes = loadDbBytes();
+        if (dbBytes == null) {
+            return;
+        }
+        try {
+            searcher = Searcher.newWithBuffer(dbBytes);
+        } catch (Exception e) {
+            searcher = null;
+            org.slf4j.LoggerFactory.getLogger(IpUtil.class)
+                    .warn("ip2region 初始化失败，将降级为在线 API 查询", e);
+        }
+    }
+
+    /**
+     * 按优先级加载 xdb 字节：外部文件优先，classpath 兜底。
+     */
+    private static byte[] loadDbBytes() {
+        // 1) 外部文件：jar 同目录 / config 子目录（生产环境推荐，更新库无需重新打包）
+        String[] externalCandidates = {
+                DB_FILE_NAME,
+                "config/" + DB_FILE_NAME,
+                System.getProperty("user.dir") + File.separator + DB_FILE_NAME
+        };
+        for (String candidate : externalCandidates) {
+            try {
+                Path p = Path.of(candidate);
+                if (Files.exists(p) && Files.size(p) > 1024 * 1024) { // 小于 1MB 视为无效
+                    return Files.readAllBytes(p);
+                }
+            } catch (Exception ignored) {
+                // 继续尝试下一个候选
+            }
+        }
+        // 2) classpath 兜底（同样要求文件大小合理，避免陈旧/损坏文件被误加载）
+        try {
+            ClassPathResource resource = new ClassPathResource(DB_FILE_NAME);
+            if (resource.exists()) {
+                try (InputStream is = resource.getInputStream()) {
+                    byte[] bytes = is.readAllBytes();
+                    if (bytes.length > 1024 * 1024) {
+                        return bytes;
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+            // 忽略
+        }
+        return null;
+    }
+
+    // ---------- 在线 API 降级（ip-api.com，免费、无需密钥） ----------
+
+    /**
+     * IP 归属地缓存：key=IP, value=CacheEntry。
+     * ip-api.com 免费版限制 45次/分钟，缓存可有效避免超限。
+     */
+    private static final Map<String, CacheEntry> IP_CACHE = new ConcurrentHashMap<>();
+    private static final long CACHE_TTL_MS = Duration.ofHours(1).toMillis();
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    private static class CacheEntry {
+        final String location;
+        final long expireAt;
+
+        CacheEntry(String location, long expireAt) {
+            this.location = location;
+            this.expireAt = expireAt;
+        }
+    }
+
+    /**
+     * 通过 ip-api.com 在线查询 IP 归属地。
+     * 返回格式示例：{"country":"China","regionName":"Guangdong","city":"Shenzhen"}
+     */
+    private static String resolveByOnlineApi(String ip) {
+        // 查缓存
+        CacheEntry cached = IP_CACHE.get(ip);
+        if (cached != null && System.currentTimeMillis() < cached.expireAt) {
+            return cached.location;
+        }
+
+        try {
+            HttpURLConnection conn = (HttpURLConnection) URI.create(
+                    "http://ip-api.com/json/" + ip + "?lang=zh-CN&fields=country,regionName,city"
+            ).toURL().openConnection();
+            conn.setConnectTimeout(3000);
+            conn.setReadTimeout(3000);
+            conn.setRequestProperty("Accept", "application/json");
+            conn.connect();
+
+            if (conn.getResponseCode() != 200) {
+                return UNKNOWN_LOCATION;
+            }
+            JsonNode root = MAPPER.readTree(conn.getInputStream());
+            String country = root.path("country").asText("");
+            String region = root.path("regionName").asText("");
+            String city = root.path("city").asText("");
+
+            StringBuilder sb = new StringBuilder();
+            if (!country.isEmpty()) sb.append(country);
+            if (!region.isEmpty()) sb.append(region);
+            if (!city.isEmpty()) sb.append(city);
+            String location = sb.length() > 0 ? sb.toString() : UNKNOWN_LOCATION;
+
+            // 写入缓存
+            IP_CACHE.put(ip, new CacheEntry(location, System.currentTimeMillis() + CACHE_TTL_MS));
+            return location;
+        } catch (Exception e) {
+            return UNKNOWN_LOCATION;
+        }
+    }
+
+    // ---------- 公共方法 ----------
 
     /**
      * 获取客户端真实 IP 地址
@@ -65,14 +210,47 @@ public class IpUtil {
     }
 
     /**
-     * 根据 IP 获取归属地（无外部依赖，仅做内网识别）。
-     * 如需精确归属地，可接入 ip2region / 纯真库 / 在线 API。
+     * 根据 IP 获取归属地（自动降级）。
+     * 优先级：离线库 → 在线 API → 「未知」
      */
     public static String getRealAddressByIp(String ip) {
         if (!StringUtils.hasText(ip)) {
-            return "未知";
+            return UNKNOWN_LOCATION;
         }
-        return isInnerIp(ip) ? "内网IP" : "未知";
+        if (isInnerIp(ip)) {
+            return "内网IP";
+        }
+        // 1) 优先 ip2region 离线库
+        if (searcher != null) {
+            try {
+                String region = searcher.search(ip);
+                return resolveXdbResult(region);
+            } catch (Exception e) {
+                // 离线库查询失败，继续走在线降级
+            }
+        }
+        // 2) 在线 API 降级
+        return resolveByOnlineApi(ip);
+    }
+
+    /**
+     * 将 ip2region 原始结果（国家|区域|省份|城市|运营商，未知段为 0）转为「省份+城市」。
+     */
+    private static String resolveXdbResult(String region) {
+        if (!StringUtils.hasText(region) || "0".equals(region)) {
+            return UNKNOWN_LOCATION;
+        }
+        String[] parts = region.split("\\|");
+        StringBuilder sb = new StringBuilder();
+        if (parts.length >= 4) {
+            String province = "0".equals(parts[2]) ? "" : parts[2];
+            String city = "0".equals(parts[3]) ? "" : parts[3];
+            sb.append(province).append(city);
+        } else {
+            sb.append(region);
+        }
+        String result = sb.toString().trim();
+        return StringUtils.hasText(result) ? result : UNKNOWN_LOCATION;
     }
 
     public static boolean isInnerIp(String ip) {

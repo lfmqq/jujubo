@@ -67,6 +67,12 @@
 			<artifactId>hutool-all</artifactId>
 			<version>5.8.25</version>
 		</dependency>
+		<!-- IP 归属地解析（离线库 ip2region） -->
+		<dependency>
+			<groupId>org.lionsoul</groupId>
+			<artifactId>ip2region</artifactId>
+			<version>2.7.0</version>
+		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
