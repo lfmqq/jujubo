@@ -180,7 +180,7 @@ const businessTypeTag = (v) => {
   if (v === 2) return 'warning'
   if (v === 3) return 'danger'
   if (v === 5 || v === 6) return 'info'
-  return ''
+  return 'info'
 }
 
 const loadData = async () => {

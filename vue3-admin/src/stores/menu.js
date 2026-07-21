@@ -33,13 +33,12 @@ export const useMenuStore = defineStore('menu', {
 
     actions: {
         /**
-         * 获取当前用户可见的菜单树
+         * 获取当前用户可见的菜单树和权限列表
          */
         async fetchMenus() {
             try {
                 const res = await request.get('/system/menu/user-menu')
                 this.menuList = res.data || []
-                this.permissions = this.extractPermissions(this.menuList)
                 this.loaded = true
                 return this.menuList
             } catch {
@@ -51,18 +50,17 @@ export const useMenuStore = defineStore('menu', {
         },
 
         /**
-         * 递归提取所有权限标识
+         * 获取当前用户的所有权限标识（含按钮级权限）
          */
-        extractPermissions(menus) {
-            const perms = []
-            const walk = (list) => {
-                list.forEach((m) => {
-                    if (m.perms) perms.push(m.perms)
-                    if (m.children?.length) walk(m.children)
-                })
+        async fetchPermissions() {
+            try {
+                const res = await request.get('/system/menu/user-permissions')
+                this.permissions = res.data || []
+                return this.permissions
+            } catch {
+                this.permissions = []
+                return []
             }
-            walk(menus)
-            return perms
         },
 
         /**

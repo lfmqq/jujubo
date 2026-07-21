@@ -53,6 +53,15 @@ public class DataInitializer implements ApplicationRunner {
 
         // 4. 确保「系统监控 → 操作日志」菜单存在（前端日志查看页）
         ensureMonitorMenu();
+
+        // 5. 确保 IoT 物联网模块菜单
+        ensureIotMenus();
+
+        // 6. 确保代码生成模块菜单
+        ensureGenMenus();
+
+        // 7. 确保定时任务模块菜单
+        ensureJobMenus();
     }
 
     /**
@@ -298,5 +307,136 @@ public class DataInitializer implements ApplicationRunner {
                 System.out.println("[DataInitializer] 分配权限 " + perms + " → role_id=1");
             }
         }
+    }
+
+    /** 确保 IoT 物联网模块菜单存在 */
+    private void ensureIotMenus() {
+        Long dirId = ensureDirMenu("IoT物联网", "/iot", "Cpu", 10);
+        if (dirId == null) return;
+
+        Long productId = ensureMenu(dirId, "产品管理", "/iot/product", "iot/product/index",
+                "iot:product:list", "Goods", 1);
+        Long deviceId = ensureMenu(dirId, "设备管理", "/iot/device", "iot/device/index",
+                "iot:device:list", "Monitor", 2);
+
+        ensureButton(productId, "iot:product:add", "产品新增", 1);
+        ensureButton(productId, "iot:product:edit", "产品编辑", 2);
+        ensureButton(productId, "iot:product:remove", "产品删除", 3);
+        ensureButton(deviceId, "iot:device:add", "设备新增", 1);
+        ensureButton(deviceId, "iot:device:edit", "设备编辑", 2);
+        ensureButton(deviceId, "iot:device:remove", "设备删除", 3);
+    }
+
+    private void ensureGenMenus() {
+        Long dirId = ensureDirMenu("开发工具", "/tool", "Tools", 20);
+        if (dirId == null) return;
+
+        Long genId = ensureMenu(dirId, "代码生成", "/tool/gen", "tool/gen/index",
+                "tool:gen:list", "EditPen", 1);
+        ensureButton(genId, "tool:gen:code", "生成代码", 1);
+    }
+
+    private void ensureJobMenus() {
+        List<SysMenu> monitorDirs = menuMapper.selectList(
+                new LambdaQueryWrapper<SysMenu>()
+                        .eq(SysMenu::getMenuName, "系统监控")
+                        .eq(SysMenu::getType, 0));
+        if (monitorDirs.isEmpty()) return;
+        Long parentId = monitorDirs.get(0).getId();
+
+        Long jobId = ensureMenu(parentId, "定时任务", "/job", "monitor/job/index",
+                "monitor:job:list", "Clock", 2);
+        ensureMenu(parentId, "调度日志", "/job/log", "monitor/job/log",
+                "monitor:job:log", "Tickets", 3);
+
+        ensureButton(jobId, "monitor:job:add", "任务新增", 1);
+        ensureButton(jobId, "monitor:job:edit", "任务编辑", 2);
+        ensureButton(jobId, "monitor:job:remove", "任务删除", 3);
+    }
+
+    // ==================== 通用辅助方法 ====================
+
+    private Long ensureDirMenu(String name, String path, String icon, int sort) {
+        List<SysMenu> dirs = menuMapper.selectList(
+                new LambdaQueryWrapper<SysMenu>()
+                        .eq(SysMenu::getMenuName, name)
+                        .eq(SysMenu::getType, 0));
+        if (!dirs.isEmpty()) return dirs.get(0).getId();
+
+        SysMenu dir = new SysMenu();
+        dir.setParentId(0L);
+        dir.setMenuName(name);
+        dir.setPath(path);
+        dir.setComponent("Layout");
+        dir.setPerms("");
+        dir.setType(0);
+        dir.setIcon(icon);
+        dir.setSort(sort);
+        dir.setVisible(1);
+        dir.setAlwaysShow(1);
+        dir.setStatus(1);
+        menuMapper.insert(dir);
+        System.out.println("[DataInitializer] 创建目录菜单：" + name + " (id=" + dir.getId() + ")");
+
+        SysRoleMenu rm = new SysRoleMenu();
+        rm.setRoleId(1L);
+        rm.setMenuId(dir.getId());
+        roleMenuMapper.insert(rm);
+        return dir.getId();
+    }
+
+    private Long ensureMenu(Long parentId, String name, String path, String component,
+                            String perms, String icon, int sort) {
+        List<SysMenu> menus = menuMapper.selectList(
+                new LambdaQueryWrapper<SysMenu>()
+                        .eq(SysMenu::getMenuName, name)
+                        .eq(SysMenu::getType, 1));
+        if (!menus.isEmpty()) return menus.get(0).getId();
+
+        SysMenu menu = new SysMenu();
+        menu.setParentId(parentId);
+        menu.setMenuName(name);
+        menu.setPath(path);
+        menu.setComponent(component);
+        menu.setPerms(perms);
+        menu.setType(1);
+        menu.setIcon(icon);
+        menu.setSort(sort);
+        menu.setVisible(1);
+        menu.setAlwaysShow(1);
+        menu.setStatus(1);
+        menuMapper.insert(menu);
+        System.out.println("[DataInitializer] 创建菜单：" + name + " (id=" + menu.getId() + ")");
+
+        SysRoleMenu rm = new SysRoleMenu();
+        rm.setRoleId(1L);
+        rm.setMenuId(menu.getId());
+        roleMenuMapper.insert(rm);
+        return menu.getId();
+    }
+
+    private void ensureButton(Long parentId, String perms, String name, int sort) {
+        Long exists = menuMapper.selectCount(
+                new LambdaQueryWrapper<SysMenu>().eq(SysMenu::getPerms, perms));
+        if (exists > 0) return;
+
+        SysMenu btn = new SysMenu();
+        btn.setParentId(parentId);
+        btn.setMenuName(name);
+        btn.setPath("");
+        btn.setComponent("");
+        btn.setPerms(perms);
+        btn.setType(2);
+        btn.setIcon("");
+        btn.setSort(sort);
+        btn.setVisible(1);
+        btn.setAlwaysShow(1);
+        btn.setStatus(1);
+        menuMapper.insert(btn);
+
+        SysRoleMenu rm = new SysRoleMenu();
+        rm.setRoleId(1L);
+        rm.setMenuId(btn.getId());
+        roleMenuMapper.insert(rm);
     }
 }

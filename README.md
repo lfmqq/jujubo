@@ -1,6 +1,6 @@
 # 桔桔波管理系统（Orange-Wave-Management-System）
 
-一个基于 **Spring Boot 3 + Vue 3** 的前后端分离后台管理系统框架，开箱即用，包含完整的用户认证、权限控制（RBAC）、菜单管理、操作日志、数据统计与文件上传等后台管理常用功能，可作为新项目快速起步的通用骨架。
+一个基于 **Spring Boot 3 + Vue 3** 的前后端分离后台管理系统框架，开箱即用，包含完整的用户认证、权限控制（RBAC）、菜单管理、操作日志、数据统计、文件上传、IoT 物联网管理、定时任务与代码生成等后台管理常用功能，可作为新项目快速起步的通用骨架。
 
 ---
 
@@ -89,16 +89,23 @@ com.admin
 │   ├── UserController             # 用户管理 + 个人信息 + 改密 / 重置密码
 │   ├── RoleController             # 角色管理
 │   ├── DeptController             # 部门管理
-│   ├── MenuController             # 菜单管理（树、用户菜单、启停）
+│   ├── MenuController             # 菜单管理（树、用户菜单、用户权限、启停）
 │   ├── NotifyMessageController    # 通知管理
 │   ├── OperLogController          # 操作日志（含前端日志上报接口）
 │   ├── StatisticsController       # 数据概览 / 趋势 / 最新用户
 │   ├── FileController             # 文件上传
-│   └── HomeController             # 首页信息
-├── entity/                        # 数据实体（对应 sys_* 表）
+│   ├── HomeController             # 首页信息
+│   ├── IotProductController       # IoT 产品管理
+│   ├── IotDeviceController        # IoT 设备管理 + 设备数据查询
+│   ├── GenController              # 代码生成
+│   └── SysJobController           # 定时任务管理
+├── entity/                        # 数据实体
 │   ├── SysUser / SysRole / SysDept / SysMenu
 │   ├── SysUserRole / SysRoleMenu  # 关联表
 │   ├── SysNotifyMessage / SysOperLog
+│   ├── IotProduct / IotDevice / IotDeviceData  # IoT 物联网
+│   ├── GenTable                   # 代码生成表
+│   └── SysJob / SysJobLog         # 定时任务
 ├── mapper/                        # MyBatis-Plus Mapper 接口
 ├── service/ + service/impl/       # 业务层
 ├── config/                        # 配置类
@@ -123,10 +130,10 @@ com.admin
 
 - **认证流程**：登录（`/auth/login`）先校验 Redis 中的图形验证码（一次性），再经 Spring Security `AuthenticationManager` 校验账号密码（BCrypt 加密），通过后生成 JWT 并返回，同时把 `LoginUser` 缓存到 Redis（`login:user:{userId}`，与 JWT 同过期）。
 - **无状态鉴权**：`SecurityConfig` 关闭 session（`STATELESS`），所有受保护接口需携带 `Authorization: Bearer <token>`；`JwtAuthenticationFilter` 解析 token 并重建 `Authentication`。
-- **权限控制**：基于 RBAC，使用 `@PreAuthorize("hasAuthority('xxx')")` 进行方法级鉴权；菜单 `perms` 字段即权限标识；前端根据「用户菜单」动态生成路由与可显示的按钮。
+- **权限控制**：基于 RBAC，使用 `@PreAuthorize("hasAuthority('xxx')")` 进行方法级鉴权；菜单 `perms` 字段即权限标识；前端根据 `/system/menu/user-permissions` 接口获取完整权限列表（含按钮级），通过自定义指令 `v-has-perm` 控制按钮显隐。
 - **操作日志**：通过 `@Log` 注解 + AOP（`LogAspect`）自动记录后端增删改查；前端页面访问与接口失败也会调用 `OperLogController` 的 frontend 上报接口，统一落入 `sys_oper_log`。
 - **动态菜单 / 路由**：菜单表以树形结构维护（`type`：0 目录 / 1 菜单 / 2 按钮），前端 `utils/dynamicRouter.js` 将 `user-menu` 转为 Vue Router 路由。
-- **数据自修复**：`DataInitializer` 在应用启动时检查并补全 admin 用户角色、通知/用户/操作日志的按钮权限与「系统监控」目录，确保功能开箱可用（仅修复、不覆盖已有数据）。
+- **数据自修复**：`DataInitializer` 在应用启动时检查并补全 admin 用户角色、IoT 物联网模块、代码生成模块、定时任务模块、通知/用户/操作日志的按钮权限与「系统监控」目录，确保功能开箱可用（仅修复、不覆盖已有数据）。
 
 ### 2.5 主要接口一览（`/api` 前缀）
 
@@ -136,9 +143,12 @@ com.admin
 | 用户 | `/system/user/page`、`/system/user/{id}`、`POST /system/user`、`PUT /system/user`、`DELETE /system/user/{id}`、`/system/user/profile`、`/system/user/reset-password/{id}` | 分页、详情、增改删、个人信息、重置密码 |
 | 角色 | `/system/role/...` | 角色增删改查与权限分配 |
 | 部门 | `/system/dept/...` | 部门树 |
-| 菜单 | `/system/menu/tree`、`/system/menu/user-menu`、`POST/PUT/DELETE`、`/system/menu/toggle-status` | 菜单树、用户菜单、启停 |
+| 菜单 | `/system/menu/tree`、`/system/menu/user-menu`、`/system/menu/user-permissions`、`POST/PUT/DELETE`、`/system/menu/toggle-status` | 菜单树、用户菜单、用户权限列表（含按钮级权限标识）、启停 |
 | 通知 | `/system/notify/...` | 通知管理 |
 | 操作日志 | `/monitor/operlog/...`、`POST /monitor/operlog/frontend` | 查询/删除/清空、前端日志上报 |
+| 定时任务 | `/monitor/job/page`、`/monitor/job/{id}`、`POST/PUT/DELETE`、`/monitor/job/log/page` | 任务增删改查、调度日志分页 |
+| IoT 物联网 | `/iot/product/page`、`/iot/product/list`、`/iot/product/{id}`、`POST/PUT/DELETE`、`/iot/device/page`、`/iot/device/{id}`、`/iot/device/{id}/data`、`POST/PUT/DELETE` | 产品与设备管理、设备最新数据查询 |
+| 代码生成 | `/tool/gen/page`、`/tool/gen/{id}`、`POST /tool/gen/code/{id}` | 代码生成表分页、详情、生成代码 |
 | 统计 | `/statistics/overview`、`/statistics/user-trend`、`/statistics/user-trend-week`、`/statistics/latest-users` | 概览、月/周趋势、最新用户 |
 | 文件 | `POST /file/upload` | 文件上传（返回可访问路径） |
 
@@ -166,7 +176,7 @@ com.admin
 
 ```
 src/
-├── main.js                 # 入口：挂载 Pinia、Router、ElementPlus、全局图标、主题初始化
+├── main.js                 # 入口：挂载 Pinia、Router、ElementPlus、全局图标、主题初始化、注册 v-has-perm 指令
 ├── App.vue
 ├── style.css               # 全局样式
 ├── router/index.js         # 静态路由 + 动态路由加载 + 路由守卫（鉴权、进度条、日志上报）
@@ -184,7 +194,14 @@ src/
 │   ├── dashboard/          # 可视化大屏
 │   │   ├── index.vue       # 机房监控大屏（实时指标 / ECharts 图表）
 │   │   └── shipping.vue    # 全球航运大屏（Three.js 3D 地球 / 航线 / 地图纹理）
-│   ├── monitor/operlog/    # 操作日志查看
+│   ├── monitor/
+│   │   ├── operlog/        # 操作日志查看
+│   │   └── job/            # 定时任务 + 调度日志
+│   ├── iot/
+│   │   ├── product/        # IoT 产品管理
+│   │   └── device/         # IoT 设备管理
+│   ├── tool/
+│   │   └── gen/            # 代码生成
 │   ├── system/
 │   │   ├── user/           # 用户管理
 │   │   ├── role/           # 角色管理
@@ -192,7 +209,7 @@ src/
 │   │   ├── menu/           # 菜单管理
 │   │   └── notify/         # 通知管理
 │   └── redirect.vue        # 重定向 / 404 兜底
-├── stores/                 # Pinia：user（Token/信息）、menu（动态菜单）、tagsView、theme
+├── stores/                 # Pinia：user（Token/信息）、menu（动态菜单/权限列表）、tagsView、theme
 ├── utils/
 │   ├── request.js          # Axios 实例 + 拦截器（Token、401 跳登录、403 提示、失败日志上报）
 │   ├── dynamicRouter.js    # 后端菜单 → 前端路由
@@ -203,7 +220,7 @@ src/
 
 ### 3.3 主要特性
 
-- **动态路由 + 按钮级权限**：登录后拉取「用户菜单」，前端生成路由；页面内按钮依据 `v-hasPermi` 类权限标识显示/隐藏。
+- **动态路由 + 按钮级权限**：登录后拉取「用户菜单」与「用户权限」，前端生成动态路由；页面内按钮通过自定义指令 `v-has-perm` 控制显隐，权限标识由 `/system/menu/user-permissions` 接口统一返回（含目录、菜单、按钮三级）。
 - **登录鉴权守卫**：未登录跳转 `/login?redirect=...`；刷新后自动重拉用户信息并重新注册动态路由；根路径 `/` 固定重定向到 `/home`。
 - **多标签导航（TagsView）**：支持页签打开/关闭/刷新，刷新后状态保留。
 - **主题切换**：明亮 / 暗黑主题，设置通过 `theme` store 持久化（挂载前初始化避免闪烁）。
@@ -224,7 +241,78 @@ npm run preview    # 预览构建产物
 
 ---
 
-## 四、运行与部署
+## 四、IoT 物联网
+
+### 4.1 概述
+
+IoT 物联网模块提供完整的产品管理与设备管理能力，支持多种协议与数据格式，可快速接入各类物联网设备。
+
+```mermaid
+flowchart LR
+    Product["IoT 产品"] -->|定义模型| Protocol["通信协议<br/>MQTT / HTTP / CoAP / TCP"]
+    Product -->|定义模型| Format["数据格式<br/>JSON / 自定义"]
+    Product -->|1:N| Device["IoT 设备"]
+    Device -->|上报| Data["设备数据"]
+```
+
+- **产品（IotProduct）**：定义一类设备的公共模型，包括设备类型、通信协议、数据格式等。
+- **设备（IotDevice）**：产品下的具体实例，拥有唯一设备标识和认证密钥。
+- **设备数据（IotDeviceData）**：设备上报的最新属性值（按属性名存储，同一设备同属性覆盖式更新）。
+
+### 4.2 数据库表
+
+| 表名 | 说明 | 关键字段 |
+|------|------|----------|
+| `iot_product` | 产品表 | `product_name`, `product_key`, `device_type`(sensor/actuator/gateway), `protocol_type`(mqtt/http/coap/tcp), `data_format`(json/custom), `status`(1启用/0禁用) |
+| `iot_device` | 设备表 | `device_name`, `device_key`(唯一标识), `device_secret`(认证密钥), `product_id`(所属产品), `status`(0未激活/1在线/2离线) |
+| `iot_device_data` | 设备数据表 | `device_id`, `property_name`(属性名), `property_value`(属性值), `report_time`(上报时间) |
+
+### 4.3 后端接口（`/api/iot`）
+
+**产品管理**：
+
+| 方法 | 接口 | 说明 |
+|------|------|------|
+| GET | `/product/page` | 分页查询产品（`productName`, `productKey`, `status`） |
+| GET | `/product/list` | 全部产品列表（供设备关联选择） |
+| GET | `/product/{id}` | 产品详情 |
+| POST | `/product` | 新增产品 |
+| PUT | `/product` | 编辑产品 |
+| DELETE | `/product/{id}` | 删除产品 |
+
+**设备管理**：
+
+| 方法 | 接口 | 说明 |
+|------|------|------|
+| GET | `/device/page` | 分页查询设备（`deviceName`, `productId`, `status`） |
+| GET | `/device/{id}` | 设备详情 |
+| GET | `/device/{id}/data` | 设备最新上报数据 |
+| POST | `/device` | 注册设备（含密钥） |
+| PUT | `/device` | 编辑设备 |
+| DELETE | `/device/{id}` | 删除设备 |
+
+### 4.4 前端页面
+
+| 页面路径 | 文件位置 | 说明 |
+|----------|----------|------|
+| IoT 产品管理 | `src/views/iot/product/index.vue` | 卡片式布局，支持产品名称/标识/状态筛选，产品增删改查 |
+| IoT 设备管理 | `src/views/iot/device/index.vue` | 卡片式布局，支持设备名称/所属产品/状态筛选，设备注册/编辑/删除，查看设备最新数据 |
+
+两页面均采用网格卡片式布局，每个卡片左侧展示核心信息（设备类型、通信协议、数据格式、产品/设备标识），右侧展示产品默认图。
+
+### 4.5 数据初始化
+
+`DataInitializer` 会在应用启动时自动补全 IoT 相关菜单和按钮权限：
+
+- **目录**：物联网（`/iot`）
+- **菜单**：产品管理（`/iot/product`）、设备管理（`/iot/device`）
+- **权限标识**：`iot:product:add/edit/remove`、`iot:device:add/edit/remove`
+
+无需手动插入菜单数据，开箱即用。
+
+---
+
+## 五、运行与部署
 
 ### 4.1 环境依赖
 
@@ -291,7 +379,7 @@ ls -lh ip2region.xdb
 
 ---
 
-## 五、默认账号说明
+## 六、默认账号说明
 
 - 超级管理员：`id=1`，关联角色 `role_id=1`（超级管理员）。管理员可在「用户管理」中将用户密码重置为默认 `awei123456`。
 - 登录需输入图形验证码（由 `/auth/captcha` 生成，存入 Redis，一次性使用）。

@@ -72,6 +72,7 @@ async function loadDynamicRoutes() {
     if (!menuStore.loaded) {
         try {
             menus = await menuStore.fetchMenus()
+            await menuStore.fetchPermissions()
         } catch {
             return
         }

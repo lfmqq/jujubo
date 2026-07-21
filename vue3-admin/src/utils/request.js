@@ -31,6 +31,10 @@ service.interceptors.request.use(config => {
 
 // 响应拦截
 service.interceptors.response.use(res => {
+    // blob/文件下载直接透传原始响应，不校验业务 code
+    if (res.config.responseType === 'blob') {
+        return res
+    }
     if (res.data.code !== 200) {
         ElMessage.error(res.data.msg || '请求失败')
         if (res.data.code === 401) {

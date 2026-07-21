@@ -36,6 +36,14 @@ public class MenuController {
         return Result.success(menuService.getUserMenus(userId));
     }
 
+    /** 获取当前用户的所有权限标识（含按钮级权限） */
+    @GetMapping("/user-permissions")
+    public Result<List<String>> userPermissions() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = ((LoginUser) auth.getPrincipal()).getSysUser().getId();
+        return Result.success(menuService.getUserPermissions(userId));
+    }
+
     @Log(title = "菜单管理", businessType = BusinessType.INSERT)
     @PostMapping
     @PreAuthorize("hasAuthority('system:menu:add')")

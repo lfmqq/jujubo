@@ -14,7 +14,7 @@ import java.util.Random;
 public class CaptchaUtil {
 
     /** 验证码字符集（去除 0/O/1/I/l 等易混淆字符） */
-    private static final String CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    private static final String CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ123456789";
     private static final int WIDTH = 120;
     private static final int HEIGHT = 40;
     private static final int LENGTH = 4;

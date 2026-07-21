@@ -130,8 +130,8 @@ const login = async () => {
   try {
     const res = await request.post('/auth/login', loginForm.value)
     userStore.setToken(res.data.token)
-    // 登录成功后拉取用户菜单 + 用户信息
-    await Promise.all([menuStore.fetchMenus(), userStore.getUserInfo()])
+    // 登录成功后拉取用户菜单 + 权限 + 用户信息
+    await Promise.all([menuStore.fetchMenus(), menuStore.fetchPermissions(), userStore.getUserInfo()])
     ElMessage.success('登录成功')
     // 重定向到目标页或首页
     const redirect = route.query.redirect || '/'

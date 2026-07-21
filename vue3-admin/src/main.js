@@ -9,6 +9,7 @@ import './styles/variables.css'
 import './styles/global.css'
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { useThemeStore } from '@/stores/theme'
+import { useMenuStore } from '@/stores/menu'
 import * as $date from '@/utils/date'
 
 const app = createApp(App)
@@ -28,5 +29,17 @@ app.use(ElementPlus, { locale: zhCn })
 
 // 全局属性：日期工具
 app.config.globalProperties.$date = $date
+
+// 自定义指令：按钮权限控制 v-has-perm
+app.directive('has-perm', {
+    mounted(el, binding) {
+        const { value } = binding
+        if (!value) return
+        const menuStore = useMenuStore()
+        if (!menuStore.permissions.includes(value)) {
+            el.parentNode?.removeChild(el)
+        }
+    }
+})
 
 app.mount('#app')
