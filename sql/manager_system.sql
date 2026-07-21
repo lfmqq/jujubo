@@ -60,7 +60,7 @@ CREATE TABLE `sys_menu`  (
   `visible` tinyint(1) NULL DEFAULT 1 COMMENT '是否显示：1=显示，0=隐藏',
   `status` tinyint(1) NULL DEFAULT 1 COMMENT '菜单状态：1=启用，0=禁用',
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 36 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 39 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
 -- Records of sys_menu
@@ -98,6 +98,10 @@ INSERT INTO `sys_menu` VALUES (32, 0, '系统监控', 'monitor', 'Layout', '', 0
 INSERT INTO `sys_menu` VALUES (33, 32, '操作日志', 'operlog', 'monitor/operlog', 'monitor:operlog:list', 1, 'Document', 1, '2026-07-14 21:54:49', '2026-07-14 21:54:49', 1, 1, 1);
 INSERT INTO `sys_menu` VALUES (34, 33, '删除', '', '', 'monitor:operlog:delete', 2, '', 1, '2026-07-14 21:54:49', '2026-07-14 21:54:49', 1, 1, 1);
 INSERT INTO `sys_menu` VALUES (35, 33, '清空', '', '', 'monitor:operlog:clean', 2, '', 2, '2026-07-14 21:54:49', '2026-07-14 21:54:49', 1, 1, 1);
+INSERT INTO `sys_menu` VALUES (36, 0, '可视化大屏', '/dashboard', 'Layout', '', 0, 'Odometer', 5, '2026-07-21 10:00:00', '2026-07-21 10:00:00', 1, 1, 1);
+INSERT INTO `sys_menu` VALUES (37, 36, '机房监控大屏', '/dashboard', 'dashboard/index', '', 1, 'Monitor', 1, '2026-07-21 10:00:00', '2026-07-21 10:00:00', 1, 1, 1);
+INSERT INTO `sys_menu` VALUES (38, 36, '全球航运大屏', '/shipping', 'dashboard/shipping', '', 1, 'Ship', 2, '2026-07-21 11:00:00', '2026-07-21 11:00:00', 1, 1, 1);
+
 
 -- ----------------------------
 -- Table structure for sys_notify_message
@@ -275,6 +279,9 @@ INSERT INTO `sys_role_menu` VALUES (1, 31);
 INSERT INTO `sys_role_menu` VALUES (1, 32);
 INSERT INTO `sys_role_menu` VALUES (1, 34);
 INSERT INTO `sys_role_menu` VALUES (1, 35);
+INSERT INTO `sys_role_menu` VALUES (1, 36);
+INSERT INTO `sys_role_menu` VALUES (1, 37);
+INSERT INTO `sys_role_menu` VALUES (1, 38);
 INSERT INTO `sys_role_menu` VALUES (2, 3);
 INSERT INTO `sys_role_menu` VALUES (2, 4);
 INSERT INTO `sys_role_menu` VALUES (2, 6);

@@ -37,13 +37,15 @@ system/
 │   └── build.log
 ├── vue3-admin/               # 前端：Vue 3 管理后台
 │   ├── src/                  # 源码（views / layout / stores / utils / router）
+│   │   └── views/dashboard/  # 可视化大屏（机房监控 / 全球航运）
 │   ├── public/
 │   ├── dist/                 # 构建产物（生产打包）
 │   ├── index.html
 │   ├── vite.config.js        # Vite 配置（含代理）
 │   └── package.json
+├── sql/
+│   └── manager_system.sql    # 数据库建表与初始化脚本
 ├── uploads/                  # 根级上传目录
-├── winget.err / winget.log   # 环境安装日志
 └── README.md
 ```
 
@@ -157,6 +159,7 @@ com.admin
 | 路由 | Vue Router 4（动态路由 + 权限守卫） |
 | 请求 | Axios（统一拦截、Token 注入、错误上报） |
 | 图表 | ECharts 6 + vue-echarts 8 |
+| 3D 可视化 | Three.js 0.185（3D 地球 / 星空 / 航线） |
 | 其他 | NProgress（路由进度条）、中文语言包 |
 
 ### 3.2 目录结构（`src`）
@@ -178,6 +181,9 @@ src/
 │   ├── login/index.vue     # 登录（账号 + 验证码）
 │   ├── home/               # 首页
 │   ├── statistics/index.vue# 数据概览仪表盘（卡片 + ECharts 图表）
+│   ├── dashboard/          # 可视化大屏
+│   │   ├── index.vue       # 机房监控大屏（实时指标 / ECharts 图表）
+│   │   └── shipping.vue    # 全球航运大屏（Three.js 3D 地球 / 航线 / 地图纹理）
 │   ├── monitor/operlog/    # 操作日志查看
 │   ├── system/
 │   │   ├── user/           # 用户管理
@@ -202,7 +208,7 @@ src/
 - **多标签导航（TagsView）**：支持页签打开/关闭/刷新，刷新后状态保留。
 - **主题切换**：明亮 / 暗黑主题，设置通过 `theme` store 持久化（挂载前初始化避免闪烁）。
 - **操作日志联动**：页面访问与接口失败自动上报到后端 `sys_oper_log`，可在「系统监控 → 操作日志」查看。
-- **数据可视化**：统计页使用 ECharts 展示用户注册月/周趋势、概览卡片与最新用户列表。
+- **数据可视化**：统计页使用 ECharts 展示用户注册月/周趋势、概览卡片与最新用户列表；可视化大屏模块（机房监控大屏 + 全球航运大屏）提供沉浸式全屏数据监控，全球航运大屏使用 Three.js 实现 3D 地球、航线动画与地图纹理。
 
 ### 3.4 开发 / 构建
 
@@ -228,14 +234,21 @@ npm run preview    # 预览构建产物
 - Redis 6+
 - Node.js 18+（前端）
 
-### 4.2 数据库初始化（重要）
+### 4.2 数据库初始化
 
-> ⚠️ 当前仓库**未包含 SQL 建表脚本**，需自行根据 `com.admin.entity` 下的实体类（`SysUser`、`SysRole`、`SysDept`、`SysMenu`、`SysUserRole`、`SysRoleMenu`、`SysNotifyMessage`、`SysOperLog`）创建对应数据表（表名见各实体 `@TableName`）。表结构要点：
+> 项目根目录 `sql/manager_system.sql` 包含完整的建表与初始化数据脚本（含菜单、角色、权限等）。导入方式：
+>
+> ```bash
+> # 创建数据库后导入（按提示替换用户名密码）
+> mysql -u root -p manager_system < sql/manager_system.sql
+> ```
+>
+> 表结构要点：
 > - 表名统一为 `sys_*`；
 > - 主键 `id` 为 `BIGINT AUTO_INCREMENT`；
 > - `create_time` / `update_time` 由 `MyMetaObjectHandler` 自动填充；
 > - `sys_menu` 含 `parent_id / menu_name / path / component / perms / type(0目录 1菜单 2按钮) / icon / sort / visible / always_show / status` 等字段。
-> 应用启动后 `DataInitializer` 会自动补全 admin 角色、按钮权限与「系统监控」菜单，无需手工插入。
+> 应用启动后 `DataInitializer` 会自动补全 admin 角色与菜单关联，无需手工处理。
 
 ### 4.3 启动步骤
 

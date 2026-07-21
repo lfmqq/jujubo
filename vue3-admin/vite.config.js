@@ -39,6 +39,7 @@ export default defineConfig(({ mode }) => {
           manualChunks(id) {
             if (!id.includes('node_modules')) return
             if (id.includes('echarts')) return 'echarts'
+            if (id.includes('three')) return 'three'
             if (id.includes('element-plus') || id.includes('@element-plus')) return 'element-plus'
             if (id.includes('@vueuse')) return 'vueuse'
             if (id.includes('vue') || id.includes('pinia') || id.includes('vue-router') || id.includes('axios')) {
