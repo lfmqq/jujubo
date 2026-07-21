@@ -535,7 +535,13 @@ function createCityMarker(city) {
 
   // 顶部发光点
   const dotGeometry = new THREE.SphereGeometry(0.15, 16, 16)
-  const dotMaterial = new THREE.MeshBasicMaterial({ color: 0x00e5ff })
+  const dotMaterial = new THREE.MeshPhongMaterial({
+    color: 0x00e5ff,
+    emissive: 0x00e5ff,
+    emissiveIntensity: 0.8,
+    specular: 0xffffff,
+    shininess: 80
+  })
   const dot = new THREE.Mesh(dotGeometry, dotMaterial)
   const dotPos = pos.clone().normalize().multiplyScalar(8.7)
   dot.position.copy(dotPos)
@@ -637,20 +643,20 @@ function onMouseMove(event) {
       // 高亮
       cityMeshes.forEach(m => {
         if (m.userData.city && m.userData.city.name !== obj.userData.city.name) {
-          m.material.color.setHex(0x00aaff)
-          m.material.emissive.setHex(0x004488)
+          m.material.color && m.material.color.setHex(0x00aaff)
+          m.material.emissive && m.material.emissive.setHex(0x004488)
         }
       })
-      obj.material.color.setHex(0xffd600)
-      obj.material.emissive.setHex(0xff6d00)
+      obj.material.color && obj.material.color.setHex(0xffd600)
+      obj.material.emissive && obj.material.emissive.setHex(0xff6d00)
     }
   } else {
     hoveredCity.value = null
     container.style.cursor = 'grab'
     cityMeshes.forEach(m => {
       if (m.userData.city) {
-        m.material.color.setHex(0x00e5ff)
-        m.material.emissive.setHex(0x00aaff)
+        m.material.color && m.material.color.setHex(0x00e5ff)
+        m.material.emissive && m.material.emissive.setHex(0x00aaff)
       }
     })
   }
