@@ -1,5 +1,7 @@
 package com.admin.controller;
 
+import com.admin.common.annotation.Log;
+import com.admin.common.enums.BusinessType;
 import com.admin.common.enums.OperatorType;
 import com.admin.common.result.Result;
 import com.admin.common.security.LoginUser;
@@ -93,6 +95,7 @@ public class OperLogController {
     /**
      * 删除单条日志
      */
+    @Log(title = "操作日志", businessType = BusinessType.DELETE)
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAuthority('monitor:operlog:delete')")
     public Result<Void> delete(@PathVariable Long id) {
@@ -103,6 +106,7 @@ public class OperLogController {
     /**
      * 清空所有日志
      */
+    @Log(title = "操作日志", businessType = BusinessType.CLEAN)
     @DeleteMapping("/clean")
     @PreAuthorize("hasAuthority('monitor:operlog:clean')")
     public Result<Void> clean() {

@@ -122,6 +122,12 @@ router.beforeEach(async (to, _from, next) => {
     if (!dynamicRoutesAdded) {
         await loadDynamicRoutes()
 
+        // 如果在加载动态路由期间 token 被清除（如 401 拦截器自动登出），跳回登录页
+        if (!userStore.token) {
+            next(`/login?redirect=${to.fullPath}`)
+            return
+        }
+
         // 路由加载后重试当前导航（关键：让 router 用新路由表重新匹配 to.path）
         if (to.path === '/' || to.name === 'Layout') {
             next({ path: getHomePath(), replace: true })

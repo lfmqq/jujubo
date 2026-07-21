@@ -37,7 +37,7 @@
           />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" :icon="Search" @click="handleQuery">查询</el-button>
+          <el-button type="primary" :icon="Search" @click="handleQuery" v-has-perm="'monitor:operlog:list'">查询</el-button>
           <el-button :icon="Refresh" @click="handleReset">重置</el-button>
         </el-form-item>
       </el-form>
@@ -46,7 +46,7 @@
     <!-- 表格区域 -->
     <el-card shadow="never" style="margin-top: 16px;">
       <div class="toolbar">
-        <el-button type="danger" plain :icon="Delete" @click="handleClean">清空日志</el-button>
+        <el-button type="danger" plain :icon="Delete" @click="handleClean" v-has-perm="'monitor:operlog:clean'">清空日志</el-button>
       </div>
       <el-table :data="tableData" border stripe v-loading="loading">
         <el-table-column label="序号" type="index" width="60" align="center" />
@@ -80,8 +80,8 @@
         <el-table-column label="操作时间" prop="operTime" width="170" />
         <el-table-column label="操作" width="140" align="center" fixed="right">
           <template #default="scope">
-            <el-button type="primary" link size="small" :icon="View" @click="openDetail(scope.row)">详情</el-button>
-            <el-button type="danger" link size="small" :icon="Delete" @click="del(scope.row)">删除</el-button>
+            <el-button type="primary" link size="small" :icon="View" @click="openDetail(scope.row)" v-has-perm="'monitor:operlog:list'">详情</el-button>
+            <el-button type="danger" link size="small" :icon="Delete" @click="del(scope.row)" v-has-perm="'monitor:operlog:delete'">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

@@ -40,7 +40,10 @@ service.interceptors.response.use(res => {
         if (res.data.code === 401) {
             const userStore = useUserStore()
             userStore.logout()
-            router.push('/login')
+            // 避免重复跳转：如果当前已经在登录页，不再 push
+            if (router.currentRoute.value.path !== '/login') {
+                router.push('/login')
+            }
         }
         // 业务失败也记录到操作日志（排除日志上报接口自身，避免死循环）
         if (!res.config.url?.includes('/monitor/operlog/frontend')) {
@@ -69,7 +72,10 @@ service.interceptors.response.use(res => {
     if (err.response?.status === 401) {
         const userStore = useUserStore()
         userStore.logout()
-        router.push('/login')
+        // 避免重复跳转：如果当前已经在登录页，不再 push
+        if (router.currentRoute.value.path !== '/login') {
+            router.push('/login')
+        }
         return Promise.reject(err)
     }
     const msg = err.response?.data?.msg || err.message || '网络请求异常'
