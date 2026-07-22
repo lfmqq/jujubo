@@ -68,9 +68,9 @@
             </div>
 
             <div class="card-footer">
-              <el-button type="primary" plain size="small" :icon="View" @click="viewData(row)">数据</el-button>
-              <el-button type="warning" plain size="small" :icon="Edit" @click="edit(row)" v-has-perm="'iot:device:edit'">编辑</el-button>
-              <el-button type="danger" plain size="small" :icon="Delete" @click="del(row)" v-has-perm="'iot:device:remove'">删除</el-button>
+              <el-button type="primary" plain @click="viewData(row)">数据</el-button>
+              <el-button type="warning" plain @click="edit(row)" v-has-perm="'iot:device:edit'">编辑</el-button>
+              <el-button type="danger" plain  @click="del(row)" v-has-perm="'iot:device:remove'">删除</el-button>
             </div>
           </div>
         </div>

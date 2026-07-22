@@ -15,11 +15,11 @@
         <el-table-column label="实体类名" prop="className" width="160" />
         <el-table-column label="功能名" prop="functionName" width="140" />
         <el-table-column label="创建时间" prop="createTime" width="170" />
-        <el-table-column label="操作" width="220" align="center" fixed="right">
+        <el-table-column label="操作" width="260" align="center" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link size="small" :icon="View" @click="preview(row)">预览</el-button>
-            <el-button type="success" link size="small" :icon="Download" @click="download(row)">下载</el-button>
-            <el-button type="danger" link size="small" :icon="Delete" @click="del(row)">删除</el-button>
+            <el-button plain type="primary" @click="preview(row)">预览</el-button>
+            <el-button plain type="success" @click="download(row)">下载</el-button>
+            <el-button plain type="danger" @click="del(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

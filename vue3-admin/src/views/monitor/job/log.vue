@@ -25,7 +25,7 @@
         <el-table-column label="执行时间" prop="execTime" width="170" />
         <el-table-column label="操作" width="80" align="center" fixed="right">
           <template #default="{ row }">
-            <el-button type="primary" link size="small" :icon="View" @click="viewDetail(row)">详情</el-button>
+            <el-button plain type="primary" @click="viewDetail(row)">详情</el-button>
           </template>
         </el-table-column>
       </el-table>

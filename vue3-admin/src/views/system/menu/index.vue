@@ -63,9 +63,9 @@
         </el-table-column>
         <el-table-column label="操作" width="280" align="center" fixed="right">
           <template #default="scope">
-            <el-button type="primary" link size="small" :icon="Plus" @click="addChild(scope.row)">新增</el-button>
-            <el-button type="primary" link size="small" :icon="Edit" @click="edit(scope.row)">编辑</el-button>
-            <el-button type="danger" link size="small" :icon="Delete" @click="del(scope.row)">删除</el-button>
+            <el-button plain type="primary" @click="addChild(scope.row)">新增</el-button>
+            <el-button plain type="warning" @click="edit(scope.row)">编辑</el-button>
+            <el-button plain type="danger" @click="del(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

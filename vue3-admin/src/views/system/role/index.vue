@@ -28,9 +28,9 @@
         <el-table-column label="创建时间" prop="createTime" width="170" />
         <el-table-column label="操作" width="280" align="center" fixed="right">
           <template #default="scope">
-            <el-button type="primary" link size="small" :icon="Edit" @click="edit(scope.row)">编辑</el-button>
-            <el-button type="success" link size="small" :icon="Key" @click="assignMenu(scope.row)">分配菜单</el-button>
-            <el-button type="danger" link size="small" :icon="Delete" @click="del(scope.row)">删除</el-button>
+            <el-button plain type="primary" @click="edit(scope.row)">编辑</el-button>
+            <el-button plain type="success" @click="assignMenu(scope.row)">分配菜单</el-button>
+            <el-button plain type="danger" @click="del(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

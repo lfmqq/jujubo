@@ -67,7 +67,7 @@
             </template>
           </div>
           <div class="notify-dropdown-footer">
-            <el-button type="primary" link size="small" @click="goNotifyPage">
+            <el-button plain type="primary" @click="goNotifyPage">
               查看全部 →
             </el-button>
           </div>

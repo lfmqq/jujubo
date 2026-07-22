@@ -54,16 +54,13 @@
         <el-table-column label="创建时间" prop="createTime" width="170" />
         <el-table-column label="操作" width="200" align="center" fixed="right">
           <template #default="scope">
-            <el-button type="primary" link size="small" :icon="View" @click="viewDetail(scope.row)">查看</el-button>
-            <el-button
+            <el-button plain type="primary" @click="viewDetail(scope.row)">查看</el-button>
+            <el-button plain
               v-if="scope.row.readStatus === 0"
               type="success"
-              link
-              size="small"
-              :icon="Check"
               @click="handleRead(scope.row)"
             >已读</el-button>
-            <el-button type="danger" link size="small" :icon="Delete" @click="handleDelete(scope.row)">删除</el-button>
+            <el-button plain type="danger" @click="handleDelete(scope.row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>

@@ -38,11 +38,11 @@
         <el-table-column label="创建时间" prop="createTime" width="170" />
         <el-table-column label="操作" width="280" align="center" fixed="right">
           <template #default="{ row }">
-            <el-button type="success" link size="small" :icon="VideoPlay" @click="runJob(row)">执行</el-button>
-            <el-button v-if="row.status===0" type="primary" link size="small" :icon="VideoPlay" @click="resume(row)">恢复</el-button>
-            <el-button v-else type="warning" link size="small" :icon="VideoPause" @click="pause(row)">暂停</el-button>
-            <el-button type="primary" link size="small" :icon="Edit" @click="edit(row)" v-has-perm="'monitor:job:edit'">编辑</el-button>
-            <el-button type="danger" link size="small" :icon="Delete" @click="del(row)" v-has-perm="'monitor:job:remove'">删除</el-button>
+            <el-button plain type="success" @click="runJob(row)">执行</el-button>
+            <el-button plain v-if="row.status===0" type="primary" @click="resume(row)">恢复</el-button>
+            <el-button plain v-else type="warning" @click="pause(row)">暂停</el-button>
+            <el-button plain type="primary" @click="edit(row)" v-has-perm="'monitor:job:edit'">编辑</el-button>
+            <el-button plain type="danger" @click="del(row)" v-has-perm="'monitor:job:remove'">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
