@@ -128,7 +128,8 @@ com.admin
 
 ### 2.4 关键功能实现
 
-- **认证流程**：登录（`/auth/login`）先校验 Redis 中的图形验证码（一次性），再经 Spring Security `AuthenticationManager` 校验账号密码（BCrypt 加密），通过后生成 JWT 并返回，同时把 `LoginUser` 缓存到 Redis（`login:user:{userId}`，与 JWT 同过期）。
+- **多方式登录**：支持**密码登录**、**邮箱验证码登录**、**手机号验证码登录**三种方式。邮箱验证码通过 QQ 邮箱 SMTP 发送（免费），手机验证码需接入腾讯云短信（详见「六、多方式登录」章节）。
+- **认证流程**：密码登录（`/auth/login`）先校验 Redis 中的图形验证码（一次性），再经 Spring Security `AuthenticationManager` 校验账号密码（BCrypt 加密）；验证码登录（`/auth/login/code`）先校验 Redis 中的短信/邮箱验证码（一次性，5 分钟有效），再查找用户构建登录态。通过后均生成 JWT 并返回，同时把 `LoginUser` 缓存到 Redis（`login:user:{userId}`，与 JWT 同过期）。
 - **无状态鉴权**：`SecurityConfig` 关闭 session（`STATELESS`），所有受保护接口需携带 `Authorization: Bearer <token>`；`JwtAuthenticationFilter` 解析 token 并重建 `Authentication`。
 - **权限控制**：基于 RBAC，使用 `@PreAuthorize("hasAuthority('xxx')")` 进行方法级鉴权；菜单 `perms` 字段即权限标识；前端根据 `/system/menu/user-permissions` 接口获取完整权限列表（含按钮级），通过自定义指令 `v-has-perm` 控制按钮显隐。
 - **操作日志**：通过 `@Log` 注解 + AOP（`LogAspect`）自动记录后端增删改查；前端页面访问与接口失败也会调用 `OperLogController` 的 frontend 上报接口，统一落入 `sys_oper_log`。
@@ -139,7 +140,7 @@ com.admin
 
 | 模块 | 接口 | 说明 |
 |------|------|------|
-| 认证 | `POST /auth/login`、`POST /auth/logout`、`GET /auth/captcha` | 登录、登出、验证码 |
+| 认证 | `POST /auth/login`、`POST /auth/login/code`、`POST /auth/send-code`、`POST /auth/logout`、`GET /auth/captcha` | 密码登录、验证码登录、发送验证码、登出、图形验证码 |
 | 用户 | `/system/user/page`、`/system/user/{id}`、`POST /system/user`、`PUT /system/user`、`DELETE /system/user/{id}`、`/system/user/profile`、`/system/user/reset-password/{id}` | 分页、详情、增改删、个人信息、重置密码 |
 | 角色 | `/system/role/...` | 角色增删改查与权限分配 |
 | 部门 | `/system/dept/...` | 部门树 |
@@ -377,9 +378,105 @@ flowchart LR
 
 ---
 
-## 六、运行与部署
+## 六、多方式登录
 
-### 6.1 环境依赖
+本项目支持三种登录方式，用户可在登录页自由切换：
+
+| 登录方式 | 适用范围 | 费用 | 配置难度 |
+|----------|----------|------|----------|
+| 密码登录 | 所有用户 | 免费 | 无需配置 |
+| 邮箱验证码登录 | 已绑定邮箱的用户 | 免费（QQ 邮箱 SMTP） | 简单，配好 SMTP 授权码即可 |
+| 手机号验证码登录 | 已绑定手机号的用户 | 约 0.045 元/条 | 需开通腾讯云短信服务 |
+
+### 6.1 邮箱验证码登录（✅ 可直接使用）
+
+用户输入已绑定的邮箱地址，点击「发送验证码」，系统通过 QQ 邮箱 SMTP 向该邮箱发送 6 位数字验证码，有效期 5 分钟，同一邮箱 60 秒内只能发送一次。
+
+**开通步骤：**
+
+1. 登录 QQ 邮箱 → 设置 → 账户 → 开启 **SMTP 服务**
+2. 按提示发送短信验证后，获得 **16 位 SMTP 授权码**
+3. 在 `application-{env}.yml` 中配置：
+
+```yaml
+spring:
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: 你的QQ邮箱@qq.com     # 发件邮箱
+    password: 你的16位SMTP授权码      # 不是 QQ 密码
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+```
+
+> 未配置邮件服务时，验证码会自动降级为**控制台日志打印**（关键词 `邮箱验证码`），系统不会报错或崩溃。
+
+**使用前提：**
+
+- 管理员需在「用户管理」中为用户绑定邮箱地址
+- 用户已有账号，且账号状态为「正常」
+
+**发送逻辑：**
+
+- 验证码存入 Redis，Key 为 `code:email:{邮箱}`，5 分钟有效
+- 同一邮箱 60 秒内只能发一次，防刷
+- 验证码校验后立即删除（一次性使用）
+- 单个 QQ 邮箱每日约 100 封上限，内部管理系统足够
+
+### 6.2 手机号验证码登录（⚠️ 需接入短信平台）
+
+手机验证码登录代码已完整实现，但目前**尚未接入真实短信服务**，需按以下步骤接入后方可使用。
+
+**当前默认行为：**
+
+未配置短信参数时，验证码会**降级为控制台日志打印**（关键词 `短信验证码`），不影响系统正常使用，但用户收不到真实短信。
+
+**接入腾讯云短信步骤：**
+
+1. 登录 [腾讯云短信控制台](https://console.cloud.tencent.com/smsv2)
+2. 创建应用 → 获取 **SDK AppId**
+3. 申请**签名**（如：桔桔波）→ 获取签名名称
+4. 申请**正文模板**，内容示例：`您的验证码为{1}，5分钟有效，请勿泄露。` → 获取**模板 ID**
+5. [API 密钥管理](https://console.cloud.tencent.com/cam/capi) → 获取 **SecretId** 和 **SecretKey**
+6. 在 `application-{env}.yml` 中配置：
+
+```yaml
+sms:
+  tencent:
+    secret-id: AKIDxxxx              # SecretId
+    secret-key: xxxxxx               # SecretKey
+    sdk-app-id: "1400xxxxxx"         # SDK AppId
+    sign-name: 桔桔波                # 短信签名名称
+    template-id: "2345678"           # 短信模板 ID
+```
+
+> 配置完成后重新构建部署即可生效。新用户有 **100 条免费测试额度**。
+
+**短信发送逻辑（与邮箱一致）：**
+
+- 验证码存入 Redis，Key 为 `code:sms:{手机号}`，5 分钟有效
+- 同一手机号 60 秒内只能发一次
+- 验证码校验后立即删除（一次性使用）
+- 国内手机号自动添加 `+86` 前缀
+
+**使用前提：**
+
+- 管理员需在「用户管理」中为用户绑定手机号
+- 用户已有账号，且账号状态为「正常」
+- 已配置腾讯云短信四项参数
+
+> 如希望使用其他短信服务商（阿里云等），可自行替换 `VerificationCodeServiceImpl.sendSms()` 方法中的实现，接口定义保持不变。
+
+---
+
+## 七、运行与部署
+
+### 7.1 环境依赖
 
 - JDK 17+
 - Maven 3.8+
@@ -387,7 +484,7 @@ flowchart LR
 - Redis 6+
 - Node.js 18+（前端）
 
-### 6.2 数据库初始化
+### 7.2 数据库初始化
 
 > 项目根目录 `sql/manager_system.sql` 包含完整的建表与初始化数据脚本（含菜单、角色、权限等）。导入方式：
 >
@@ -403,7 +500,7 @@ flowchart LR
 > - `sys_menu` 含 `parent_id / menu_name / path / component / perms / type(0目录 1菜单 2按钮) / icon / sort / visible / always_show / status` 等字段。
 > 应用启动后 `DataInitializer` 会自动补全 admin 角色与菜单关联，无需手工处理。
 
-### 6.3 启动步骤
+### 7.3 启动步骤
 
 1. 启动 MySQL、Redis。
 2. 后端：
@@ -420,7 +517,7 @@ flowchart LR
    浏览器打开 `http://localhost:5173`。
 4. 生产部署：前端 `npm run build` 后将 `dist/` 由 Nginx 托管（反向代理 `/api` 到后端 8080），后端以 `prod` 环境运行。
 
-### 6.4 IP 归属地解析
+### 7.4 IP 归属地解析
 
 操作日志的「IP 归属地」(`operLocation`) 支持**自动降级**的三级策略：
 
@@ -444,7 +541,7 @@ ls -lh ip2region.xdb
 
 ---
 
-## 七、默认账号说明
+## 八、默认账号说明
 
 - 超级管理员：`id=1`，关联角色 `role_id=1`（超级管理员）。管理员可在「用户管理」中将用户密码重置为默认 `awei123456`。
 - 登录需输入图形验证码（由 `/auth/captcha` 生成，存入 Redis，一次性使用）。
