@@ -40,7 +40,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/auth/login", "/auth/logout", "/auth/captcha", "/doc.html", "/webjars/**", "/v3/api-docs/**", "/uploads/**", "/monitor/operlog/frontend").permitAll()
+                        .requestMatchers("/auth/login", "/auth/logout", "/auth/captcha", "/auth/send-code", "/auth/login/code", "/doc.html", "/webjars/**", "/v3/api-docs/**", "/uploads/**", "/monitor/operlog/frontend").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)

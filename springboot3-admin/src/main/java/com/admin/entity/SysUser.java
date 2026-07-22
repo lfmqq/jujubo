@@ -19,6 +19,7 @@ public class SysUser {
     private String email;
     private Long deptId;
     private String avatar;
+    private String phone;
     private Integer status;
 
     @TableField(fill = FieldFill.INSERT)

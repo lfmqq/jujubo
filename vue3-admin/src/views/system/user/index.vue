@@ -26,8 +26,18 @@
       </div>
       <el-table :data="tableData" border stripe v-loading="loading">
         <el-table-column label="序号" type="index" width="60" align="center" />
-        <el-table-column label="用户名" prop="username" min-width="120" />
-        <el-table-column label="昵称" prop="nickname" min-width="120" />
+        <el-table-column label="用户名" prop="username" min-width="100" />
+        <el-table-column label="昵称" prop="nickname" min-width="100" />
+        <el-table-column label="手机号" prop="phone" min-width="130">
+          <template #default="scope">
+            {{ scope.row.phone || '-' }}
+          </template>
+        </el-table-column>
+        <el-table-column label="邮箱" prop="email" min-width="170">
+          <template #default="scope">
+            {{ scope.row.email || '-' }}
+          </template>
+        </el-table-column>
         <el-table-column label="状态" width="80" align="center">
           <template #default="scope">
             <el-tag :type="scope.row.status === 1 ? 'success' : 'danger'" size="small">
@@ -68,6 +78,12 @@
         </el-form-item>
         <el-form-item label="昵称" prop="nickname">
           <el-input v-model="form.nickname" placeholder="请输入昵称" />
+        </el-form-item>
+        <el-form-item label="手机号" prop="phone">
+          <el-input v-model="form.phone" placeholder="请输入手机号" />
+        </el-form-item>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="form.email" placeholder="用于邮箱验证码登录" />
         </el-form-item>
         <el-form-item label="角色" prop="roleIds">
           <el-select v-model="form.roleIds" multiple placeholder="请选择角色" style="width: 100%;">
@@ -113,7 +129,13 @@ const queryParams = ref({
 const form = ref({ status: 1, roleIds: [] })
 const formRules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }]
+  nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
+  phone: [
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+  ],
+  email: [
+    { type: 'email', message: '请输入正确的邮箱地址', trigger: 'blur' }
+  ]
 }
 
 const loadData = async () => {

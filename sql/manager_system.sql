@@ -494,6 +494,7 @@ CREATE TABLE `sys_user`  (
   `create_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0),
   `update_time` datetime(0) NULL DEFAULT CURRENT_TIMESTAMP(0) ON UPDATE CURRENT_TIMESTAMP(0) COMMENT '更新时间',
   `avatar` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '头像URL',
+  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '手机号',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `username`(`username`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 6 CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
@@ -501,11 +502,11 @@ CREATE TABLE `sys_user`  (
 -- ----------------------------
 -- Records of sys_user
 -- ----------------------------
-INSERT INTO `sys_user` VALUES (1, 'admin', '$2a$10$FfA.CcDrNcWXPCQvt6q2ZOV8rRJzPuO.263EiFQTEspS5Rp7G7nmW', '超级管理员', 'adminx1@63.com', NULL, 1, '2026-06-30 15:06:14', '2026-07-06 22:15:45', '/uploads/184e72be4cf34d64bb90995f86846321.png');
-INSERT INTO `sys_user` VALUES (2, 'user', '$2a$10$ZlPLGJ8Q0BfN0dIa.yh8SOha/IfXZPuegSs3aC.Fs/7ABskNComfC', '普通用户', NULL, NULL, 1, '2026-07-01 11:11:05', '2026-07-01 17:39:30', NULL);
-INSERT INTO `sys_user` VALUES (3, 'aaa', '$2a$10$MjHUAa7oWfSOIyigElHqS.OCw7SS3ACUSPQcZDGSdmy0GCAU6DOGe', '西AOA', NULL, NULL, 1, '2026-07-01 11:37:43', '2026-07-02 21:44:23', '/uploads/eaa52e7b8fcd42a29b566fecc6989108.jpg');
-INSERT INTO `sys_user` VALUES (4, 'ces', '$2a$10$/N.RDCBEuB/FOoMw82C07er5wWp0ttDBkzihrhYJIApWIrX7qUCB6', '测试', NULL, NULL, 1, '2026-07-06 22:17:24', '2026-07-14 00:02:54', NULL);
-INSERT INTO `sys_user` VALUES (5, 'acc', '$2a$10$.TxIHv/8OLyCh5Q/E.URe./.slAnunnZIO7B8FUqZ2wcEiOIoVAI2', '测试用户', NULL, NULL, 1, '2026-07-14 22:06:01', '2026-07-14 22:06:01', NULL);
+INSERT INTO `sys_user` VALUES (1, 'admin', '$2a$10$FfA.CcDrNcWXPCQvt6q2ZOV8rRJzPuO.263EiFQTEspS5Rp7G7nmW', '超级管理员', 'adminx1@63.com', NULL, 1, '2026-06-30 15:06:14', '2026-07-06 22:15:45', '/uploads/184e72be4cf34d64bb90995f86846321.png', NULL);
+INSERT INTO `sys_user` VALUES (2, 'user', '$2a$10$ZlPLGJ8Q0BfN0dIa.yh8SOha/IfXZPuegSs3aC.Fs/7ABskNComfC', '普通用户', NULL, NULL, 1, '2026-07-01 11:11:05', '2026-07-01 17:39:30', NULL, NULL);
+INSERT INTO `sys_user` VALUES (3, 'aaa', '$2a$10$MjHUAa7oWfSOIyigElHqS.OCw7SS3ACUSPQcZDGSdmy0GCAU6DOGe', '西AOA', NULL, NULL, 1, '2026-07-01 11:37:43', '2026-07-02 21:44:23', '/uploads/eaa52e7b8fcd42a29b566fecc6989108.jpg', NULL);
+INSERT INTO `sys_user` VALUES (4, 'ces', '$2a$10$/N.RDCBEuB/FOoMw82C07er5wWp0ttDBkzihrhYJIApWIrX7qUCB6', '测试', NULL, NULL, 1, '2026-07-06 22:17:24', '2026-07-14 00:02:54', NULL, NULL);
+INSERT INTO `sys_user` VALUES (5, 'acc', '$2a$10$.TxIHv/8OLyCh5Q/E.URe./.slAnunnZIO7B8FUqZ2wcEiOIoVAI2', '测试用户', NULL, NULL, 1, '2026-07-14 22:06:01', '2026-07-14 22:06:01', NULL, NULL);
 
 -- ----------------------------
 -- Table structure for sys_user_role

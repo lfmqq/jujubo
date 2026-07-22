@@ -12,6 +12,12 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
     @Select("select * from sys_user where username = #{username}")
     SysUser selectByUsername(@Param("username") String username);
 
+    @Select("select * from sys_user where phone = #{phone}")
+    SysUser selectByPhone(@Param("phone") String phone);
+
+    @Select("select * from sys_user where email = #{email}")
+    SysUser selectByEmail(@Param("email") String email);
+
     /** 按月统计用户注册数量 */
     @Select("SELECT DATE_FORMAT(create_time, '%Y-%m') AS month, COUNT(*) AS count " +
             "FROM sys_user GROUP BY DATE_FORMAT(create_time, '%Y-%m') ORDER BY month")

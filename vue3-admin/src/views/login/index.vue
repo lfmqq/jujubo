@@ -2,7 +2,7 @@
   <div class="login-container">
     <div class="login-box">
       <!-- 左侧 Banner -->
-        <div class="login-banner">
+      <div class="login-banner">
         <div class="banner-content">
           <img src="/logo.png" class="banner-logo" alt="logo" />
           <h1 class="banner-title">桔桔波管理系统</h1>
@@ -28,34 +28,42 @@
       <div class="login-form">
         <div class="form-header">
           <h2>欢迎登录</h2>
-          <p>请输入您的账号密码</p>
+          <p>{{ activeTabDesc }}</p>
         </div>
-        <el-form ref="loginRef" :model="loginForm" :rules="rules" size="large">
+
+        <!-- 登录方式切换 Tab -->
+        <div class="login-tabs">
+          <span
+            v-for="tab in loginTabs"
+            :key="tab.key"
+            :class="['tab-item', { active: activeTab === tab.key }]"
+            @click="switchTab(tab.key)"
+          >{{ tab.label }}</span>
+        </div>
+
+        <!-- ==================== 密码登录 ==================== -->
+        <el-form v-show="activeTab === 'password'" ref="pwdRef" :model="pwdForm" :rules="pwdRules" size="large">
           <el-form-item prop="username">
-            <el-input
-              v-model="loginForm.username"
-              placeholder="请输入用户名"
-              :prefix-icon="User"
-            />
+            <el-input v-model="pwdForm.username" placeholder="请输入用户名" :prefix-icon="User" />
           </el-form-item>
           <el-form-item prop="password">
             <el-input
-              v-model="loginForm.password"
+              v-model="pwdForm.password"
               type="password"
               placeholder="请输入密码"
               :prefix-icon="Lock"
               show-password
-              @keyup.enter="login"
+              @keyup.enter="handleLogin"
             />
           </el-form-item>
           <el-form-item prop="code">
             <div class="captcha-row">
               <el-input
-                v-model="loginForm.code"
+                v-model="pwdForm.code"
                 placeholder="请输入验证码"
                 :prefix-icon="Picture"
                 style="flex: 1"
-                @keyup.enter="login"
+                @keyup.enter="handleLogin"
               />
               <img
                 v-if="captchaImg"
@@ -68,7 +76,69 @@
             </div>
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" :loading="loading" class="login-btn" @click="login">
+            <el-button type="primary" :loading="loading" class="login-btn" @click="handleLogin">
+              {{ loading ? '登录中...' : '登 录' }}
+            </el-button>
+          </el-form-item>
+        </el-form>
+
+        <!-- ==================== 短信验证码登录 ==================== -->
+        <el-form v-show="activeTab === 'sms'" ref="smsRef" :model="smsForm" :rules="smsRules" size="large">
+          <el-form-item prop="phone">
+            <el-input v-model="smsForm.phone" placeholder="请输入手机号" :prefix-icon="Phone" />
+          </el-form-item>
+          <el-form-item prop="code">
+            <div class="captcha-row">
+              <el-input
+                v-model="smsForm.code"
+                placeholder="请输入短信验证码"
+                :prefix-icon="Message"
+                style="flex: 1"
+                @keyup.enter="handleLogin"
+              />
+              <el-button
+                class="send-code-btn"
+                :disabled="smsCountdown > 0"
+                :loading="smsSending"
+                @click="sendSmsCode"
+              >
+                {{ smsCountdown > 0 ? smsCountdown + 's' : '获取验证码' }}
+              </el-button>
+            </div>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" :loading="loading" class="login-btn" @click="handleLogin">
+              {{ loading ? '登录中...' : '登 录' }}
+            </el-button>
+          </el-form-item>
+        </el-form>
+
+        <!-- ==================== 邮箱验证码登录 ==================== -->
+        <el-form v-show="activeTab === 'email'" ref="emailRef" :model="emailForm" :rules="emailRules" size="large">
+          <el-form-item prop="email">
+            <el-input v-model="emailForm.email" placeholder="请输入邮箱地址" :prefix-icon="Message" />
+          </el-form-item>
+          <el-form-item prop="code">
+            <div class="captcha-row">
+              <el-input
+                v-model="emailForm.code"
+                placeholder="请输入邮箱验证码"
+                :prefix-icon="Picture"
+                style="flex: 1"
+                @keyup.enter="handleLogin"
+              />
+              <el-button
+                class="send-code-btn"
+                :disabled="emailCountdown > 0"
+                :loading="emailSending"
+                @click="sendEmailCode"
+              >
+                {{ emailCountdown > 0 ? emailCountdown + 's' : '获取验证码' }}
+              </el-button>
+            </div>
+          </el-form-item>
+          <el-form-item>
+            <el-button type="primary" :loading="loading" class="login-btn" @click="handleLogin">
               {{ loading ? '登录中...' : '登 录' }}
             </el-button>
           </el-form-item>
@@ -83,63 +153,192 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useMenuStore } from '@/stores/menu'
 import request from '@/utils/request'
 import { ElMessage } from 'element-plus'
-import { User, Lock, Check, Picture } from '@element-plus/icons-vue'
+import { User, Lock, Check, Picture, Phone, Message } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const menuStore = useMenuStore()
-const loginRef = ref(null)
+
 const loading = ref(false)
 const captchaImg = ref('')
 
-const loginForm = ref({
-  username: '',
-  password: '',
-  code: '',
-  uuid: ''
+// ==================== Tab 切换 ====================
+const activeTab = ref('password')
+const loginTabs = [
+  { key: 'password', label: '密码登录', desc: '请输入您的账号密码' },
+  { key: 'sms', label: '短信登录', desc: '请输入手机号获取验证码' },
+  { key: 'email', label: '邮箱登录', desc: '请输入邮箱获取验证码' }
+]
+
+const activeTabDesc = computed(() => {
+  const tab = loginTabs.find(t => t.key === activeTab.value)
+  return tab ? tab.desc : ''
 })
 
-const rules = {
+const switchTab = (key) => {
+  activeTab.value = key
+  if (key === 'password') {
+    getCaptcha()
+  }
+}
+
+// ==================== 密码登录 ====================
+const pwdRef = ref(null)
+const pwdForm = ref({ username: '', password: '', code: '', uuid: '' })
+const pwdRules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
   code: [{ required: true, message: '请输入验证码', trigger: 'blur' }]
 }
 
-// 获取图形验证码
+// ==================== 短信登录 ====================
+const smsRef = ref(null)
+const smsForm = ref({ phone: '', code: '' })
+const smsSending = ref(false)
+const smsCountdown = ref(0)
+let smsTimer = null
+const smsRules = {
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' }
+  ],
+  code: [{ required: true, message: '请输入短信验证码', trigger: 'blur' }]
+}
+
+// ==================== 邮箱登录 ====================
+const emailRef = ref(null)
+const emailForm = ref({ email: '', code: '' })
+const emailSending = ref(false)
+const emailCountdown = ref(0)
+let emailTimer = null
+const emailRules = {
+  email: [
+    { required: true, message: '请输入邮箱地址', trigger: 'blur' },
+    { type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }
+  ],
+  code: [{ required: true, message: '请输入邮箱验证码', trigger: 'blur' }]
+}
+
+// ==================== 获取图形验证码 ====================
 const getCaptcha = async () => {
   try {
     const res = await request.get('/auth/captcha')
-    loginForm.value.uuid = res.data.uuid
+    pwdForm.value.uuid = res.data.uuid
     captchaImg.value = res.data.img
-    loginForm.value.code = ''
+    pwdForm.value.code = ''
   } catch (e) {
     // 获取失败不影响登录表单，静默处理
   }
 }
 
-const login = async () => {
-  await loginRef.value.validate()
-  loading.value = true
+// ==================== 倒计时工具 ====================
+const startCountdown = (countdownRef) => {
+  countdownRef.value = 60
+  const timerKey = countdownRef === smsCountdown ? 'smsTimer' : 'emailTimer'
+  const timerRef = countdownRef === smsCountdown ? smsTimer : emailTimer
+  if (timerRef) clearInterval(timerRef)
+  const interval = setInterval(() => {
+    countdownRef.value--
+    if (countdownRef.value <= 0) {
+      clearInterval(interval)
+      if (timerKey === 'smsTimer') smsTimer = null
+      else emailTimer = null
+    }
+  }, 1000)
+  if (timerKey === 'smsTimer') smsTimer = interval
+  else emailTimer = interval
+}
+
+// ==================== 发送验证码 ====================
+const sendSmsCode = async () => {
+  // 先校验手机号
   try {
-    const res = await request.post('/auth/login', loginForm.value)
-    userStore.setToken(res.data.token)
-    // 登录成功后拉取用户菜单 + 权限 + 用户信息
-    await Promise.all([menuStore.fetchMenus(), menuStore.fetchPermissions(), userStore.getUserInfo()])
-    ElMessage.success('登录成功')
-    // 重定向到目标页或首页
-    const redirect = route.query.redirect || '/'
-    router.push(redirect)
+    await smsRef.value.validateField('phone')
+  } catch {
+    return
+  }
+  smsSending.value = true
+  try {
+    await request.post('/auth/send-code', { account: smsForm.value.phone, type: 'sms' })
+    ElMessage.success('验证码已发送')
+    startCountdown(smsCountdown)
   } finally {
-    loading.value = false
-    // 无论成功失败都刷新验证码（成功后跳转，失败则需重新输入）
-    getCaptcha()
+    smsSending.value = false
+  }
+}
+
+const sendEmailCode = async () => {
+  try {
+    await emailRef.value.validateField('email')
+  } catch {
+    return
+  }
+  emailSending.value = true
+  try {
+    await request.post('/auth/send-code', { account: emailForm.value.email, type: 'email' })
+    ElMessage.success('验证码已发送')
+    startCountdown(emailCountdown)
+  } finally {
+    emailSending.value = false
+  }
+}
+
+// ==================== 登录处理 ====================
+const doLoginSuccess = async (token) => {
+  userStore.setToken(token)
+  await Promise.all([menuStore.fetchMenus(), menuStore.fetchPermissions(), userStore.getUserInfo()])
+  ElMessage.success('登录成功')
+  const redirect = route.query.redirect || '/'
+  router.push(redirect)
+}
+
+const handleLogin = async () => {
+  if (activeTab.value === 'password') {
+    // 密码登录
+    await pwdRef.value.validate()
+    loading.value = true
+    try {
+      const res = await request.post('/auth/login', pwdForm.value)
+      await doLoginSuccess(res.data.token)
+    } finally {
+      loading.value = false
+      getCaptcha()
+    }
+  } else if (activeTab.value === 'sms') {
+    // 短信验证码登录
+    await smsRef.value.validate()
+    loading.value = true
+    try {
+      const res = await request.post('/auth/login/code', {
+        account: smsForm.value.phone,
+        code: smsForm.value.code,
+        type: 'sms'
+      })
+      await doLoginSuccess(res.data.token)
+    } finally {
+      loading.value = false
+    }
+  } else if (activeTab.value === 'email') {
+    // 邮箱验证码登录
+    await emailRef.value.validate()
+    loading.value = true
+    try {
+      const res = await request.post('/auth/login/code', {
+        account: emailForm.value.email,
+        code: emailForm.value.code,
+        type: 'email'
+      })
+      await doLoginSuccess(res.data.token)
+    } finally {
+      loading.value = false
+    }
   }
 }
 
@@ -166,8 +365,8 @@ onMounted(getCaptcha)
 
 .login-box {
   display: flex;
-  width: 850px;
-  min-height: 460px;
+  width: 900px;
+  min-height: 500px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
@@ -231,26 +430,65 @@ onMounted(getCaptcha)
 /* 右侧登录表单 */
 .login-form {
   flex: 1;
-  padding: 48px 40px;
+  padding: 40px 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 
 .form-header {
-  margin-bottom: 32px;
+  margin-bottom: 8px;
 }
 
 .form-header h2 {
   font-size: 22px;
   font-weight: 600;
   color: #303133;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .form-header p {
   font-size: 13px;
   color: #909399;
+}
+
+/* Tab 切换 */
+.login-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #ebeef5;
+}
+
+.tab-item {
+  padding: 8px 20px;
+  font-size: 14px;
+  color: #909399;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.3s;
+  user-select: none;
+}
+
+.tab-item:hover {
+  color: #409eff;
+}
+
+.tab-item.active {
+  color: #409eff;
+  font-weight: 600;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 2px;
+  background: #409eff;
+  border-radius: 1px;
 }
 
 .login-btn {
@@ -260,7 +498,7 @@ onMounted(getCaptcha)
   letter-spacing: 4px;
 }
 
-/* 验证码 */
+/* 验证码 / 发送按钮行 */
 .captcha-row {
   display: flex;
   align-items: center;
@@ -277,6 +515,13 @@ onMounted(getCaptcha)
   cursor: pointer;
 }
 
+.send-code-btn {
+  width: 120px;
+  height: 40px;
+  flex-shrink: 0;
+  font-size: 13px;
+}
+
 .login-footer {
   position: fixed;
   bottom: 16px;
@@ -285,7 +530,7 @@ onMounted(getCaptcha)
 }
 
 /* 响应式 */
-@media (max-width: 900px) {
+@media (max-width: 950px) {
   .login-box {
     width: 90vw;
     flex-direction: column;
@@ -298,6 +543,11 @@ onMounted(getCaptcha)
 
   .login-form {
     padding: 32px 24px;
+  }
+
+  .send-code-btn {
+    width: 110px;
+    font-size: 12px;
   }
 }
 </style>

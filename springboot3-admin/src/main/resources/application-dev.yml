@@ -11,6 +11,19 @@ spring:
       port: 6379
       database: 0
       timeout: 10000ms
+  # 邮箱配置（用于发送邮箱验证码，开发环境可留空，邮件不会真实发送）
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: your-email@qq.com
+    password: your-smtp-auth-code
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
 
 upload:
   path: ./uploads/
