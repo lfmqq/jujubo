@@ -67,4 +67,43 @@ public class UserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impleme
         }
         return update;
     }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public SysUser registerByPhoneOrEmail(String account, String type) {
+        SysUser user = new SysUser();
+        user.setStatus(1);
+        // 默认分配普通用户角色 (role_id = 2)
+        user.setRoleIds(List.of(2L));
+
+        if ("sms".equals(type)) {
+            // 手机号注册
+            user.setPhone(account);
+            user.setNickname("手机号用户");
+            user.setUsername(generateUniqueUsername(account));
+        } else {
+            // 邮箱注册：提取@前面部分作为账号，如 123@163.com → 123
+            user.setEmail(account);
+            user.setNickname("邮箱用户");
+            String prefix = account.contains("@") ? account.split("@")[0] : account;
+            user.setUsername(generateUniqueUsername(prefix));
+        }
+
+        // password 为 null，父类 save 方法会使用默认密码 123456
+        save(user);
+        return user;
+    }
+
+    /**
+     * 生成唯一用户名：如果 base 已存在，则追加 _1, _2... 后缀
+     */
+    private String generateUniqueUsername(String base) {
+        String username = base;
+        int suffix = 1;
+        while (baseMapper.selectByUsername(username) != null) {
+            username = base + "_" + suffix;
+            suffix++;
+        }
+        return username;
+    }
 }

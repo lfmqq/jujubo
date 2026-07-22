@@ -3,7 +3,6 @@ package com.admin.service.impl;
 import cn.hutool.core.util.RandomUtil;
 import com.admin.common.exception.ServiceException;
 import com.admin.common.util.RedisUtil;
-import com.admin.mapper.SysUserMapper;
 import com.admin.service.VerificationCodeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +22,6 @@ import org.springframework.stereotype.Service;
 public class VerificationCodeServiceImpl implements VerificationCodeService {
 
     private final RedisUtil redisUtil;
-    private final SysUserMapper userMapper;
 
     /** 注入可能为 null（未配置邮件时 Spring 不创建该 Bean） */
     @Autowired(required = false)
@@ -40,9 +38,8 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
     @Value("${sms.tencent.sdk-app-id:}")
     private String smsSdkAppId;
 
-    public VerificationCodeServiceImpl(RedisUtil redisUtil, SysUserMapper userMapper) {
+    public VerificationCodeServiceImpl(RedisUtil redisUtil) {
         this.redisUtil = redisUtil;
-        this.userMapper = userMapper;
     }
 
     /** 验证码有效期（秒） */
@@ -52,9 +49,6 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
 
     @Override
     public String sendCode(String account, String type) {
-        // 校验账号是否存在
-        checkAccountExists(account, type);
-
         // 发送频率限制
         String intervalKey = "code:interval:" + type + ":" + account;
         if (redisUtil.hasKey(intervalKey)) {
@@ -107,23 +101,6 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
         redisUtil.delete(key);
         if (!cached.toString().equals(code == null ? "" : code.trim())) {
             throw new ServiceException(500, "验证码错误");
-        }
-    }
-
-    /**
-     * 校验账号是否存在
-     */
-    private void checkAccountExists(String account, String type) {
-        boolean exists;
-        if ("sms".equals(type)) {
-            exists = userMapper.selectByPhone(account) != null;
-        } else if ("email".equals(type)) {
-            exists = userMapper.selectByEmail(account) != null;
-        } else {
-            throw new ServiceException(500, "不支持的验证码类型");
-        }
-        if (!exists) {
-            throw new ServiceException(500, "该账号未注册");
         }
     }
 

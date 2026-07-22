@@ -14,6 +14,7 @@ import com.admin.dto.SendCodeDTO;
 import com.admin.entity.SysUser;
 import com.admin.mapper.SysUserMapper;
 import com.admin.service.MenuService;
+import com.admin.service.UserService;
 import com.admin.service.VerificationCodeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,7 @@ public class AuthController {
     private final VerificationCodeService verificationCodeService;
     private final SysUserMapper userMapper;
     private final MenuService menuService;
+    private final UserService userService;
 
     @Log(title = "用户登录", businessType = BusinessType.LOGIN, operatorType = OperatorType.MANAGE, isSaveRequestData = false, isSaveResponseData = false)
     @PostMapping("/login")
@@ -108,7 +110,8 @@ public class AuthController {
         }
 
         if (user == null) {
-            throw new ServiceException(500, "账号未注册");
+            // 账号不存在，自动注册
+            user = userService.registerByPhoneOrEmail(dto.getAccount(), dto.getType());
         }
         if (user.getStatus() != 1) {
             throw new ServiceException(500, "账号已被禁用，请联系管理员");
