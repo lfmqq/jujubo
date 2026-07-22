@@ -84,6 +84,13 @@
 
         <!-- ==================== 短信验证码登录 ==================== -->
         <el-form v-show="activeTab === 'sms'" ref="smsRef" :model="smsForm" :rules="smsRules" size="large">
+          <el-alert
+            title="当前未接入真实短信服务，验证码将在弹窗中展示"
+            type="warning"
+            :closable="false"
+            show-icon
+            style="margin-bottom: 16px;"
+          />
           <el-form-item prop="phone">
             <el-input v-model="smsForm.phone" placeholder="请输入手机号" :prefix-icon="Phone" />
           </el-form-item>
@@ -158,7 +165,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useMenuStore } from '@/stores/menu'
 import request from '@/utils/request'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { User, Lock, Check, Picture, Phone, Message } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -266,8 +273,24 @@ const sendSmsCode = async () => {
   }
   smsSending.value = true
   try {
-    await request.post('/auth/send-code', { account: smsForm.value.phone, type: 'sms' })
-    ElMessage.success('验证码已发送')
+    const res = await request.post('/auth/send-code', { account: smsForm.value.phone, type: 'sms' })
+    if (res.data?.degrade && res.data?.code) {
+      // 降级模式：弹窗展示验证码
+      ElMessageBox.alert(
+        `您的手机号：<strong>${smsForm.value.phone}</strong><br/>
+         验证码：<strong style="font-size:24px;color:#409eff;letter-spacing:4px;">${res.data.code}</strong><br/>
+         有效期：5 分钟`,
+        '短信验证码（降级模式）',
+        {
+          dangerouslyUseHTMLString: true,
+          confirmButtonText: '我知道了',
+          type: 'warning',
+          center: true
+        }
+      )
+    } else {
+      ElMessage.success('验证码已发送')
+    }
     startCountdown(smsCountdown)
   } finally {
     smsSending.value = false
@@ -282,8 +305,24 @@ const sendEmailCode = async () => {
   }
   emailSending.value = true
   try {
-    await request.post('/auth/send-code', { account: emailForm.value.email, type: 'email' })
-    ElMessage.success('验证码已发送')
+    const res = await request.post('/auth/send-code', { account: emailForm.value.email, type: 'email' })
+    if (res.data?.degrade && res.data?.code) {
+      // 降级模式：弹窗展示验证码
+      ElMessageBox.alert(
+        `您的邮箱：<strong>${emailForm.value.email}</strong><br/>
+         验证码：<strong style="font-size:24px;color:#409eff;letter-spacing:4px;">${res.data.code}</strong><br/>
+         有效期：5 分钟`,
+        '邮箱验证码（降级模式）',
+        {
+          dangerouslyUseHTMLString: true,
+          confirmButtonText: '我知道了',
+          type: 'warning',
+          center: true
+        }
+      )
+    } else {
+      ElMessage.success('验证码已发送')
+    }
     startCountdown(emailCountdown)
   } finally {
     emailSending.value = false

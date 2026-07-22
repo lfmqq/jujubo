@@ -32,6 +32,14 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
     @Value("${spring.mail.username:}")
     private String mailFrom;
 
+    /** 腾讯云短信配置（均未配置时处于降级模式，验证码仅打日志） */
+    @Value("${sms.tencent.secret-id:}")
+    private String smsSecretId;
+    @Value("${sms.tencent.secret-key:}")
+    private String smsSecretKey;
+    @Value("${sms.tencent.sdk-app-id:}")
+    private String smsSdkAppId;
+
     public VerificationCodeServiceImpl(RedisUtil redisUtil, SysUserMapper userMapper) {
         this.redisUtil = redisUtil;
         this.userMapper = userMapper;
@@ -43,7 +51,7 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
     private static final long SEND_INTERVAL = 60L;
 
     @Override
-    public void sendCode(String account, String type) {
+    public String sendCode(String account, String type) {
         // 校验账号是否存在
         checkAccountExists(account, type);
 
@@ -72,6 +80,20 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
         }
 
         log.info("验证码已发送 -> type={}, account={}, code={}", type, account, code);
+        return code;
+    }
+
+    /**
+     * 判断指定类型是否处于降级模式（验证码仅打印日志，未真实发送）
+     */
+    @Override
+    public boolean isDegradeMode(String type) {
+        if ("sms".equals(type)) {
+            return !isSmsConfigured();
+        } else if ("email".equals(type)) {
+            return mailSender == null;
+        }
+        return true;
     }
 
     @Override
@@ -147,5 +169,14 @@ public class VerificationCodeServiceImpl implements VerificationCodeService {
             log.error("邮件发送失败 -> email={}", email, e);
             throw new ServiceException(500, "邮件发送失败，请检查邮箱配置");
         }
+    }
+
+    /**
+     * 判断短信服务是否已配置（腾讯云四项参数均已填写）
+     */
+    private boolean isSmsConfigured() {
+        return smsSecretId != null && !smsSecretId.isBlank()
+                && smsSecretKey != null && !smsSecretKey.isBlank()
+                && smsSdkAppId != null && !smsSdkAppId.isBlank();
     }
 }

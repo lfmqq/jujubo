@@ -77,9 +77,15 @@ public class AuthController {
      */
     @Log(title = "发送验证码", businessType = BusinessType.OTHER, operatorType = OperatorType.MANAGE, isSaveRequestData = false, isSaveResponseData = false)
     @PostMapping("/send-code")
-    public Result<?> sendCode(@Valid @RequestBody SendCodeDTO dto) {
-        verificationCodeService.sendCode(dto.getAccount(), dto.getType());
-        return Result.success();
+    public Result<Map<String, Object>> sendCode(@Valid @RequestBody SendCodeDTO dto) {
+        String code = verificationCodeService.sendCode(dto.getAccount(), dto.getType());
+        boolean degrade = verificationCodeService.isDegradeMode(dto.getType());
+        Map<String, Object> data = new HashMap<>();
+        data.put("degrade", degrade);
+        if (degrade) {
+            data.put("code", code);
+        }
+        return Result.success(data);
     }
 
     /**
