@@ -101,7 +101,7 @@ const themeStore = useThemeStore()
 const isFullscreen = ref(false)
 
 const menuBg = computed(() => themeStore.isDark ? '#1d1e1f' : themeStore.menuTheme)
-const menuText = computed(() => themeStore.isDark ? '#a3a6ad' : (themeStore.isLightColor(themeStore.menuTheme) ? '#606266' : '#bfcbd9'))
+const menuText = computed(() => themeStore.isDark ? '#a3a6ad' : (themeStore.isLightColor(themeStore.menuTheme) ? '#606266' : '#8899b4'))
 const activeText = computed(() => themeStore.primaryColor)
 
 // 顶部菜单高亮：当前激活的顶级菜单 path

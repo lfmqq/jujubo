@@ -1,37 +1,28 @@
 import { defineStore } from 'pinia'
 
-// 芋道风格常用主题色
+// 主题色预设 — 精选专业配色
 export const PRESET_PRIMARY_COLORS = [
-  { name: '苍穹蓝', value: '#409EFF' },
-  { name: '极客黑', value: '#000000' },
-  { name: '微风蓝', value: '#5ac8fa' },
-  { name: '薄荷绿', value: '#3dd598' },
-  { name: '活力红', value: '#ff6b6b' },
-  { name: '阳光橙', value: '#ff9500' },
-  { name: '优雅紫', value: '#9b59b6' },
-  { name: '活力橙', value: '#ff9f43' }
+  { name: '靛青', value: '#4f6ef7' },
+  { name: '黛蓝', value: '#3b5998' },
+  { name: '墨绿', value: '#0ea57a' },
+  { name: '朱砂', value: '#dc4e42' },
+  { name: '檀紫', value: '#7c3aed' }
 ]
 
 export const PRESET_HEADER_THEMES = [
-  { name: '默认白', value: '#ffffff' },
-  { name: '极客黑', value: '#000000' },
-  { name: '科技蓝', value: '#304156' },
-  { name: '薄荷绿', value: '#11a983' },
-  { name: '活力红', value: '#f56c6c' },
-  { name: '苍穹蓝', value: '#409EFF' },
-  { name: '活力橙', value: '#e65c00' },
-  { name: '湖水蓝', value: '#0096c7' }
+  { name: '白色', value: '#ffffff' },
+  { name: '暗夜', value: '#1a2332' },
+  { name: '靛青', value: '#4f6ef7' },
+  { name: '墨绿', value: '#0ea57a' },
+  { name: '檀紫', value: '#7c3aed' }
 ]
 
 export const PRESET_MENU_THEMES = [
-  { name: '科技蓝', value: '#304156' },
-  { name: '深邃蓝', value: '#001529' },
-  { name: '薄荷绿', value: '#11a983' },
-  { name: '活力红', value: '#f56c6c' },
-  { name: '苍穹蓝', value: '#409EFF' },
-  { name: '活力橙', value: '#e65c00' },
-  { name: '湖水蓝', value: '#0096c7' },
-  { name: '薰衣草', value: '#6959cd' }
+  { name: '深岩', value: '#1a2332' },
+  { name: '墨色', value: '#111827' },
+  { name: '靛青', value: '#4f6ef7' },
+  { name: '墨绿', value: '#0ea57a' },
+  { name: '檀紫', value: '#7c3aed' }
 ]
 
 // 从 localStorage 读取或取默认值
@@ -47,9 +38,9 @@ function loadTheme(key, fallback) {
 export const useThemeStore = defineStore('theme', {
   state: () => ({
     isDark: localStorage.getItem('theme') === 'dark',
-    primaryColor: loadTheme('theme_primary', '#409EFF'),
+    primaryColor: loadTheme('theme_primary', '#4f6ef7'),
     headerTheme: loadTheme('theme_header', '#ffffff'),
-    menuTheme: loadTheme('theme_menu', '#304156'),
+    menuTheme: loadTheme('theme_menu', '#1a2332'),
     layout: loadTheme('theme_layout', 'vertical')
   }),
   actions: {
@@ -117,7 +108,7 @@ export const useThemeStore = defineStore('theme', {
         root.style.setProperty('--sidebar-bg', this.menuTheme)
         // 根据菜单背景色自动计算文字/悬停/激活色，保证可读性
         const isLight = this.isLightColor(this.menuTheme)
-        root.style.setProperty('--sidebar-text', isLight ? '#606266' : '#bfcbd9')
+        root.style.setProperty('--sidebar-text', isLight ? '#606266' : '#8899b4')
         root.style.setProperty('--sidebar-hover', isLight ? this.shade(this.menuTheme, 0.05) : this.shade(this.menuTheme, 0.15))
         root.style.setProperty('--sidebar-active-bg', this.hexToRgba(this.primaryColor, 0.15))
         root.style.setProperty('--sidebar-active-text', this.primaryColor)

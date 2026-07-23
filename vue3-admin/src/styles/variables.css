@@ -1,15 +1,15 @@
 :root {
-  /* 主色 */
-  --color-primary: #409EFF;
-  --color-success: #67C23A;
-  --color-warning: #E6A23C;
-  --color-danger: #F56C6C;
+  /* 主色 — 靛青，区别于泛滥的 Element Plus 默认蓝 #409EFF */
+  --color-primary: #4f6ef7;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
 
-  /* 侧边栏 */
-  --sidebar-bg: #304156;
-  --sidebar-text: #bfcbd9;
-  --sidebar-active-text: #409EFF;
-  --sidebar-hover: #263445;
+  /* 侧边栏 — 深岩灰，替代烂大街的 #304156 */
+  --sidebar-bg: #1a2332;
+  --sidebar-text: #8899b4;
+  --sidebar-active-text: #4f6ef7;
+  --sidebar-hover: #232d3f;
   --sidebar-width: 220px;
   --sidebar-collapse-width: 64px;
 
@@ -17,25 +17,25 @@
   --navbar-bg: #fff;
   --navbar-height: 50px;
 
-  /* 内容区 */
-  --app-bg: #f0f2f5;
+  /* 内容区 — 稍暖的浅灰 */
+  --app-bg: #f4f6f9;
   --card-bg: #fff;
 
   /* 文字 */
-  --text-primary: #303133;
-  --text-regular: #606266;
-  --text-secondary: #909399;
+  --text-primary: #1e293b;
+  --text-regular: #475569;
+  --text-secondary: #94a3b8;
 
   /* 边框 */
-  --border-color: #e4e7ed;
-  --border-light: #ebeef5;
+  --border-color: #e2e8f0;
+  --border-light: #f1f5f9;
 
   /* 标签页 */
   --tag-bg: #fff;
-  --tag-text: #666;
-  --tag-hover-bg: #ecf5ff;
-  --tag-active-bg: #ecf5ff;
-  --tag-border: #d9ecff;
+  --tag-text: #64748b;
+  --tag-hover-bg: #eef2ff;
+  --tag-active-bg: #eef2ff;
+  --tag-border: #c7d2fe;
 }
 
 /* ========== 暗色模式 ========== */

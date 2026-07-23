@@ -59,6 +59,11 @@
           >
             <el-icon v-if="themeStore.primaryColor === c.value" :size="12"><Check /></el-icon>
           </div>
+          <label class="color-block custom" :class="{ active: isCustomColor('primary'), light: isLightColor(themeStore.primaryColor) }" :title="isCustomColor('primary') ? themeStore.primaryColor : '自定义颜色'">
+            <input type="color" :value="themeStore.primaryColor" @change="themeStore.setPrimary($event.target.value)">
+            <el-icon v-if="!isCustomColor('primary')" :size="12"><Plus /></el-icon>
+            <el-icon v-else :size="12"><Check /></el-icon>
+          </label>
         </div>
       </div>
 
@@ -77,6 +82,11 @@
           >
             <el-icon v-if="themeStore.headerTheme === c.value" :size="12"><Check /></el-icon>
           </div>
+          <label class="color-block custom" :class="{ active: isCustomColor('header'), light: isLightColor(themeStore.headerTheme) }" :title="isCustomColor('header') ? themeStore.headerTheme : '自定义颜色'">
+            <input type="color" :value="themeStore.headerTheme" @change="themeStore.setHeader($event.target.value)">
+            <el-icon v-if="!isCustomColor('header')" :size="12"><Plus /></el-icon>
+            <el-icon v-else :size="12"><Check /></el-icon>
+          </label>
         </div>
       </div>
 
@@ -95,6 +105,11 @@
           >
             <el-icon v-if="themeStore.menuTheme === c.value" :size="12"><Check /></el-icon>
           </div>
+          <label class="color-block custom" :class="{ active: isCustomColor('menu'), light: isLightColor(themeStore.menuTheme) }" :title="isCustomColor('menu') ? themeStore.menuTheme : '自定义颜色'">
+            <input type="color" :value="themeStore.menuTheme" @change="themeStore.setMenu($event.target.value)">
+            <el-icon v-if="!isCustomColor('menu')" :size="12"><Plus /></el-icon>
+            <el-icon v-else :size="12"><Check /></el-icon>
+          </label>
         </div>
       </div>
 
@@ -115,7 +130,7 @@
 <script setup>
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Check, Sunny, Moon, CopyDocument } from '@element-plus/icons-vue'
+import { Check, Sunny, Moon, CopyDocument, Plus } from '@element-plus/icons-vue'
 import {
   useThemeStore,
   PRESET_PRIMARY_COLORS,
@@ -138,6 +153,21 @@ const isLightColor = (color) => {
   const b = parseInt(hex.substring(4, 6), 16)
   const brightness = (r * 299 + g * 587 + b * 114) / 1000
   return brightness > 180
+}
+
+const isCustomColor = (type) => {
+  const map = {
+    primary: PRESET_PRIMARY_COLORS,
+    header: PRESET_HEADER_THEMES,
+    menu: PRESET_MENU_THEMES
+  }
+  const list = map[type] || []
+  const current = {
+    primary: themeStore.primaryColor,
+    header: themeStore.headerTheme,
+    menu: themeStore.menuTheme
+  }[type]
+  return !list.some((c) => c.value.toLowerCase() === (current || '').toLowerCase())
 }
 
 const open = () => {
@@ -283,7 +313,7 @@ defineExpose({ open })
 .thumb-preview.vertical .thumb-sidebar {
   width: 28%;
   height: 100%;
-  background: #304156;
+  background: #1a2332;
 }
 
 .thumb-preview.vertical .thumb-main {
@@ -306,7 +336,7 @@ defineExpose({ open })
 .thumb-preview.horizontal .thumb-sidebar {
   width: 24%;
   height: 100%;
-  background: #304156;
+  background: #1a2332;
 }
 
 .thumb-preview.horizontal .thumb-main {
@@ -317,7 +347,7 @@ defineExpose({ open })
 
 .thumb-preview.horizontal .thumb-header {
   height: 28%;
-  background: #304156;
+  background: #1a2332;
   opacity: 0.6;
 }
 
@@ -342,13 +372,15 @@ defineExpose({ open })
 
 /* 颜色选择 */
 .color-list {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
 }
 
 .color-block {
-  aspect-ratio: 1;
+  width: 30px;
+  height: 30px;
   border-radius: 6px;
   cursor: pointer;
   display: flex;
@@ -369,11 +401,40 @@ defineExpose({ open })
 
 .color-block.light {
   border-color: var(--border-color);
-  color: #303133;
+  color: var(--text-primary);
 }
 
 .color-block.light.active {
   box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.color-block.custom {
+  position: relative;
+  background: var(--app-bg);
+  border: 1px dashed var(--text-secondary);
+  color: var(--text-regular);
+}
+
+.color-block.custom:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.color-block.custom.active {
+  background: transparent;
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.color-block.custom input[type='color'] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  margin: 0;
 }
 
 /* 操作按钮 */

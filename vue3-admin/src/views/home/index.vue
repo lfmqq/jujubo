@@ -162,13 +162,13 @@ onMounted(loadStats)
 .stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #303133;
+  color: var(--text-primary);
   line-height: 1;
 }
 
 .stat-label {
   font-size: 13px;
-  color: #909399;
+  color: var(--text-secondary);
   margin-top: 6px;
 }
 

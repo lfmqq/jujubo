@@ -47,7 +47,7 @@ const menuStore = useMenuStore()
 const themeStore = useThemeStore()
 
 const sidebarBg = computed(() => themeStore.isDark ? '#1d1e1f' : themeStore.menuTheme)
-const sidebarText = computed(() => themeStore.isDark ? '#a3a6ad' : (themeStore.isLightColor(themeStore.menuTheme) ? '#606266' : '#bfcbd9'))
+const sidebarText = computed(() => themeStore.isDark ? '#a3a6ad' : (themeStore.isLightColor(themeStore.menuTheme) ? '#606266' : '#8899b4'))
 const sidebarActiveText = computed(() => themeStore.primaryColor)
 
 const activeMenu = computed(() => {

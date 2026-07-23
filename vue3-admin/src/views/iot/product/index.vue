@@ -255,7 +255,7 @@ onMounted(loadData)
 }
 
 .card-icon {
-  color: #409eff;
+  color: var(--color-primary);
   flex-shrink: 0;
 }
 
@@ -320,7 +320,7 @@ onMounted(loadData)
   display: flex;
   gap: 8px;
   padding-top: 12px;
-  border-top: 1px solid #f0f2f5;
+  border-top: 1px solid var(--border-light);
 }
 
 .card-footer .el-button {

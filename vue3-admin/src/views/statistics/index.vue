@@ -6,7 +6,7 @@
         <el-card shadow="hover" class="stat-card">
           <div class="stat-card-inner">
             <div class="stat-icon" style="background: linear-gradient(135deg, #e8f4fd, #c8e4fb);">
-              <el-icon :size="26" color="#409EFF"><UserFilled /></el-icon>
+              <el-icon :size="26" color="#4f6ef7"><UserFilled /></el-icon>
             </div>
             <div class="stat-info">
               <div class="stat-value">{{ overview.userCount ?? 0 }}</div>
@@ -200,13 +200,13 @@ const trendOption = computed(() => ({
         type: 'linear',
         x: 0, y: 0, x2: 0, y2: 1,
         colorStops: [
-          { offset: 0, color: 'rgba(64, 158, 255, 0.35)' },
-          { offset: 1, color: 'rgba(64, 158, 255, 0.02)' }
+          { offset: 0, color: 'rgba(79, 110, 247, 0.35)' },
+          { offset: 1, color: 'rgba(79, 110, 247, 0.02)' }
         ]
       }
     },
-    lineStyle: { color: '#409EFF', width: 2 },
-    itemStyle: { color: '#409EFF' }
+    lineStyle: { color: '#4f6ef7', width: 2 },
+    itemStyle: { color: '#4f6ef7' }
   }]
 }))
 

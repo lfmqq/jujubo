@@ -278,7 +278,7 @@ const sendSmsCode = async () => {
       // 降级模式：弹窗展示验证码
       ElMessageBox.alert(
         `您的手机号：<strong>${smsForm.value.phone}</strong><br/>
-         验证码：<strong style="font-size:24px;color:#409eff;letter-spacing:4px;">${res.data.code}</strong><br/>
+         验证码：<strong style="font-size:24px;color:var(--color-primary);letter-spacing:4px;">${res.data.code}</strong><br/>
          有效期：5 分钟`,
         '短信验证码（降级模式）',
         {
@@ -310,7 +310,7 @@ const sendEmailCode = async () => {
       // 降级模式：弹窗展示验证码
       ElMessageBox.alert(
         `您的邮箱：<strong>${emailForm.value.email}</strong><br/>
-         验证码：<strong style="font-size:24px;color:#409eff;letter-spacing:4px;">${res.data.code}</strong><br/>
+         验证码：<strong style="font-size:24px;color:var(--color-primary);letter-spacing:4px;">${res.data.code}</strong><br/>
          有效期：5 分钟`,
         '邮箱验证码（降级模式）',
         {
@@ -391,15 +391,7 @@ onMounted(getCaptcha)
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(-45deg, #ee7752, #e73c7e, #7b4397, #23a6d5, #23d5ab, #6a5acd, #ee7752);
-  background-size: 500% 500%;
-  animation: loginGradientBG 18s ease infinite;
-}
-
-@keyframes loginGradientBG {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  background: linear-gradient(135deg, #1e293b 0%, #1a2332 40%, #4f6ef7 100%);
 }
 
 .login-box {
@@ -408,16 +400,14 @@ onMounted(getCaptcha)
   min-height: 500px;
   background: #fff;
   border-radius: 12px;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   overflow: hidden;
 }
 
 /* 左侧 Banner */
 .login-banner {
   width: 400px;
-  background: linear-gradient(-45deg, #667eea, #764ba2, #6a5acd, #23a6d5, #23d5ab);
-  background-size: 400% 400%;
-  animation: loginGradientBG 14s ease infinite;
+  background: linear-gradient(135deg, #4f6ef7, #6366f1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -437,18 +427,19 @@ onMounted(getCaptcha)
   background: rgba(255, 255, 255, 0.92);
   padding: 10px;
   margin-bottom: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
 }
 
 .banner-title {
   font-size: 32px;
   font-weight: 700;
   margin-bottom: 8px;
+  letter-spacing: 2px;
 }
 
 .banner-desc {
   font-size: 14px;
-  opacity: 0.85;
+  opacity: 0.8;
   margin-bottom: 32px;
 }
 
@@ -462,7 +453,7 @@ onMounted(getCaptcha)
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  opacity: 0.9;
+  opacity: 0.85;
   margin-bottom: 10px;
 }
 
@@ -482,13 +473,13 @@ onMounted(getCaptcha)
 .form-header h2 {
   font-size: 22px;
   font-weight: 600;
-  color: #303133;
+  color: #1e293b;
   margin-bottom: 4px;
 }
 
 .form-header p {
   font-size: 13px;
-  color: #909399;
+  color: #94a3b8;
 }
 
 /* Tab 切换 */
@@ -496,13 +487,13 @@ onMounted(getCaptcha)
   display: flex;
   gap: 0;
   margin-bottom: 24px;
-  border-bottom: 2px solid #ebeef5;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .tab-item {
   padding: 8px 20px;
   font-size: 14px;
-  color: #909399;
+  color: #94a3b8;
   cursor: pointer;
   position: relative;
   transition: color 0.3s;
@@ -510,11 +501,11 @@ onMounted(getCaptcha)
 }
 
 .tab-item:hover {
-  color: #409eff;
+  color: var(--color-primary);
 }
 
 .tab-item.active {
-  color: #409eff;
+  color: var(--color-primary);
   font-weight: 600;
 }
 
@@ -526,7 +517,7 @@ onMounted(getCaptcha)
   transform: translateX(-50%);
   width: 80%;
   height: 2px;
-  background: #409eff;
+  background: var(--color-primary);
   border-radius: 1px;
 }
 
@@ -550,7 +541,7 @@ onMounted(getCaptcha)
   height: 40px;
   flex-shrink: 0;
   border-radius: 4px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid #e2e8f0;
   cursor: pointer;
 }
 
@@ -565,7 +556,7 @@ onMounted(getCaptcha)
   position: fixed;
   bottom: 16px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.5);
 }
 
 /* 响应式 */

@@ -186,5 +186,5 @@ onMounted(loadData)
 .page-container { height: 100%; }
 .search-card :deep(.el-card__body) { padding-bottom: 0; }
 .cron-hint { font-size: 12px; color: #909399; margin-top: 4px; line-height: 1.5; }
-.cron-hint code { background: #f0f2f5; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+.cron-hint code { background: var(--border-light); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
 </style>
