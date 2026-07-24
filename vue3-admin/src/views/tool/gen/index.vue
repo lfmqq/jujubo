@@ -30,9 +30,9 @@
       <el-alert title="仅显示非系统表（不含 sys_ / gen_ 前缀）" type="info" :closable="false" style="margin-bottom: 12px;" />
       <el-table :data="dbTableList" border stripe v-loading="dbLoading" max-height="400" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="50" />
-        <el-table-column label="表名" prop="table_name" width="220" show-overflow-tooltip />
-        <el-table-column label="表描述" prop="table_comment" min-width="200" show-overflow-tooltip />
-        <el-table-column label="创建时间" prop="create_time" width="170" />
+        <el-table-column label="表名" prop="tableName" width="220" show-overflow-tooltip />
+        <el-table-column label="表描述" prop="tableComment" min-width="200" show-overflow-tooltip />
+        <el-table-column label="创建时间" prop="createTime" width="170" />
       </el-table>
       <template #footer>
         <el-button @click="dbDialogVisible = false">取 消</el-button>
@@ -108,7 +108,7 @@ const importTables = async () => {
   try {
     for (const row of selectedTables.value) {
       try {
-        await request.post('/tool/gen/import', { tableName: row.table_name })
+        await request.post('/tool/gen/import', { tableName: row.tableName })
         success++
       } catch { /* 重复导入跳过 */ }
     }

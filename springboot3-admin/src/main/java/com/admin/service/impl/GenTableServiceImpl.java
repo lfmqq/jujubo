@@ -21,7 +21,17 @@ public class GenTableServiceImpl extends ServiceImpl<GenTableMapper, GenTable> i
 
     @Override
     public List<Map<String, Object>> selectDbTables() {
-        return genTableMapper.selectDbTables();
+        return genTableMapper.selectDbTables().stream()
+                .map(this::toCamelCaseMap)
+                .toList();
+    }
+
+    private Map<String, Object> toCamelCaseMap(Map<String, Object> map) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> entry : map.entrySet()) {
+            result.put(GenUtils.toCamelCase(entry.getKey(), false), entry.getValue());
+        }
+        return result;
     }
 
     @Override
@@ -31,8 +41,9 @@ public class GenTableServiceImpl extends ServiceImpl<GenTableMapper, GenTable> i
 
     @Override
     public void importTable(String tableName) {
-        Map<String, Object> table = genTableMapper.selectDbTableByName(tableName);
-        if (table == null) return;
+        Map<String, Object> rawTable = genTableMapper.selectDbTableByName(tableName);
+        if (rawTable == null) return;
+        Map<String, Object> table = toCamelCaseMap(rawTable);
 
         // 检查是否已导入
         GenTable exist = baseMapper.selectOne(
@@ -42,12 +53,12 @@ public class GenTableServiceImpl extends ServiceImpl<GenTableMapper, GenTable> i
 
         GenTable gen = new GenTable();
         gen.setTableName(tableName);
-        gen.setTableComment(String.valueOf(table.getOrDefault("table_comment", "")));
+        gen.setTableComment(String.valueOf(table.getOrDefault("tableComment", "")));
         gen.setClassName(GenUtils.toCamelCase(tableName, true));
         gen.setPackageName("com.admin");
         gen.setModuleName(tableName.contains("_") ? tableName.substring(0, tableName.indexOf("_")) : "system");
         gen.setBusinessName(GenUtils.toCamelCase(tableName.replaceFirst("^[a-z]+_", ""), false));
-        gen.setFunctionName(String.valueOf(table.getOrDefault("table_comment", tableName)));
+        gen.setFunctionName(String.valueOf(table.getOrDefault("tableComment", tableName)));
         gen.setFunctionAuthor("admin");
         gen.setCreateTime(java.time.LocalDateTime.now());
         baseMapper.insert(gen);
