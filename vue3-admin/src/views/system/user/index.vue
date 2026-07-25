@@ -23,6 +23,12 @@
     <el-card shadow="never" style="margin-top: 16px;">
       <div class="toolbar">
         <el-button type="primary" :icon="Plus" @click="openDialog">新增用户</el-button>
+        <ExportDropdown
+          :columns="exportColumns"
+          fileName="用户列表"
+          title="用户信息报表"
+          :fetch-data="fetchExportData"
+        />
       </div>
       <el-table :data="tableData" border stripe v-loading="loading">
         <el-table-column label="序号" type="index" width="60" align="center" />
@@ -110,6 +116,7 @@ import { ref, onMounted } from 'vue'
 import request from '@/utils/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import ExportDropdown from '@/components/ExportDropdown.vue'
 
 const tableData = ref([])
 const total = ref(0)
@@ -127,6 +134,29 @@ const queryParams = ref({
 })
 
 const form = ref({ status: 1, roleIds: [] })
+
+/** 导出列定义 */
+const exportColumns = [
+  { prop: 'username', label: '用户名' },
+  { prop: 'nickname', label: '昵称' },
+  { prop: 'phone', label: '手机号' },
+  { prop: 'email', label: '邮箱' },
+  { prop: 'status', label: '状态' },
+  { prop: 'createTime', label: '创建时间' }
+]
+
+/** 导出时获取全量数据，带上搜索条件 */
+const fetchExportData = async () => {
+  const params = {}
+  if (queryParams.value.username) params.username = queryParams.value.username
+  if (queryParams.value.status !== null && queryParams.value.status !== '') params.status = queryParams.value.status
+  const res = await request.get('/system/user/export', { params })
+  return (res.data || []).map(u => ({
+    ...u,
+    status: u.status === 1 ? '正常' : '禁用'
+  }))
+}
+
 const formRules = {
   username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
   nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
@@ -237,5 +267,12 @@ onMounted(loadData)
 
 .search-card :deep(.el-card__body) {
   padding-bottom: 0;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
 }
 </style>

@@ -52,7 +52,7 @@
         </el-table-column>
         <el-table-column label="阅读时间" prop="readTime" width="170" />
         <el-table-column label="创建时间" prop="createTime" width="170" />
-        <el-table-column label="操作" width="200" align="center" fixed="right">
+        <el-table-column label="操作" width="240" align="center" fixed="right">
           <template #default="scope">
             <el-button plain type="primary" @click="viewDetail(scope.row)">查看</el-button>
             <el-button plain

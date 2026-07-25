@@ -409,7 +409,7 @@ const goNotifyPage = () => {
 }
 
 .notify-dropdown-footer {
-  text-align: center;
+  text-align: right;
   padding-top: 8px;
   border-top: 1px solid var(--border-light);
   flex-shrink: 0;

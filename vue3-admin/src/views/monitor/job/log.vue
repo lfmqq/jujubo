@@ -23,7 +23,7 @@
           <template #default="{ row }">{{ row.duration }}ms</template>
         </el-table-column>
         <el-table-column label="执行时间" prop="execTime" width="170" />
-        <el-table-column label="操作" width="80" align="center" fixed="right">
+        <el-table-column label="操作" width="120" align="center" fixed="right">
           <template #default="{ row }">
             <el-button plain type="primary" @click="viewDetail(row)">详情</el-button>
           </template>

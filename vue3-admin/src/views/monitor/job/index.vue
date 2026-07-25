@@ -36,7 +36,7 @@
           </template>
         </el-table-column>
         <el-table-column label="创建时间" prop="createTime" width="170" />
-        <el-table-column label="操作" width="280" align="center" fixed="right">
+        <el-table-column label="操作" width="320" align="center" fixed="right">
           <template #default="{ row }">
             <el-button plain type="success" @click="runJob(row)">执行</el-button>
             <el-button plain v-if="row.status===0" type="primary" @click="resume(row)">恢复</el-button>

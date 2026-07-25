@@ -165,6 +165,28 @@ public class UserController {
     }
 
     /**
+     * 导出所有用户数据（不分页）
+     */
+    @GetMapping("/export")
+    @PreAuthorize("hasAuthority('system:user:list')")
+    public Result<List<SysUser>> export(
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) Integer status) {
+        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.hasText(username)) {
+            wrapper.like(SysUser::getUsername, username);
+        }
+        if (status != null) {
+            wrapper.eq(SysUser::getStatus, status);
+        }
+        wrapper.orderByDesc(SysUser::getCreateTime);
+        List<SysUser> list = userService.list(wrapper);
+        // 脱敏：移除密码字段
+        list.forEach(user -> user.setPassword(null));
+        return Result.success(list);
+    }
+
+    /**
      * 修改当前用户密码
      */
     @PutMapping("/profile/password")

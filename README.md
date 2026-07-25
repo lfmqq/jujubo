@@ -135,13 +135,14 @@ com.admin
 - **操作日志**：通过 `@Log` 注解 + AOP（`LogAspect`）自动记录后端增删改查；前端页面访问与接口失败也会调用 `OperLogController` 的 frontend 上报接口，统一落入 `sys_oper_log`。
 - **动态菜单 / 路由**：菜单表以树形结构维护（`type`：0 目录 / 1 菜单 / 2 按钮），前端 `utils/dynamicRouter.js` 将 `user-menu` 转为 Vue Router 路由。
 - **数据自修复**：`DataInitializer` 在应用启动时检查并补全 admin 用户角色、IoT 物联网模块、代码生成模块、定时任务模块、通知/用户/操作日志的按钮权限与「系统监控」目录，确保功能开箱可用（仅修复、不覆盖已有数据）。
+- **时区自动适配**：`AdminApplication` 启动时强制设置 JVM 默认时区为 `Asia/Shanghai`，确保 Docker / 1Panel 容器部署时 `LocalDateTime.now()` 返回北京时间（避免操作日志慢 8 小时问题）。
 
 ### 2.5 主要接口一览（`/api` 前缀）
 
 | 模块 | 接口 | 说明 |
 |------|------|------|
 | 认证 | `POST /auth/login`、`POST /auth/login/code`、`POST /auth/send-code`、`POST /auth/logout`、`GET /auth/captcha` | 密码登录、验证码登录、发送验证码、登出、图形验证码 |
-| 用户 | `/system/user/page`、`/system/user/{id}`、`POST /system/user`、`PUT /system/user`、`DELETE /system/user/{id}`、`/system/user/profile`、`/system/user/reset-password/{id}` | 分页、详情、增改删、个人信息、重置密码 |
+| 用户 | `/system/user/page`、`/system/user/{id}`、`POST /system/user`、`PUT /system/user`、`DELETE /system/user/{id}`、`/system/user/profile`、`/system/user/reset-password/{id}`、`GET /system/user/export` | 分页、详情、增改删、个人信息、重置密码、导出全量数据 |
 | 角色 | `/system/role/...` | 角色增删改查与权限分配 |
 | 部门 | `/system/dept/...` | 部门树 |
 | 菜单 | `/system/menu/tree`、`/system/menu/user-menu`、`/system/menu/user-permissions`、`POST/PUT/DELETE`、`/system/menu/toggle-status` | 菜单树、用户菜单、用户权限列表（含按钮级权限标识）、启停 |
@@ -171,7 +172,7 @@ com.admin
 | 请求 | Axios（统一拦截、Token 注入、错误上报） |
 | 图表 | ECharts 6 + vue-echarts 8 |
 | 3D 可视化 | Three.js 0.185（3D 地球 / 星空 / 航线） |
-| 其他 | NProgress（路由进度条）、中文语言包 |
+| 其他 | NProgress（路由进度条）、中文语言包、xlsx（Excel 导出）、jspdf + html2canvas（PDF 导出）、docx（Word 导出）、jszip（ZIP 打包） |
 
 ### 3.2 目录结构（`src`）
 
@@ -188,6 +189,8 @@ src/
 │       ├── Navbar.vue      # 顶栏（用户、主题、退出）
 │       ├── TagsView.vue    # 多标签标签页
 │       ├── SettingDrawer.vue / SettingFloatButton.vue  # 主题设置
+├── components/
+│   └── ExportDropdown.vue  # 通用导出下拉按钮（支持 Excel/PDF/Word/ZIP）
 ├── views/                  # 页面
 │   ├── login/index.vue     # 登录（账号 + 验证码）
 │   ├── home/               # 首页
@@ -215,6 +218,7 @@ src/
 │   ├── request.js          # Axios 实例 + 拦截器（Token、401 跳登录、403 提示、失败日志上报）
 │   ├── dynamicRouter.js    # 后端菜单 → 前端路由
 │   ├── operlog.js          # 操作日志上报封装
+│   ├── export.js           # 通用导出工具（Excel/PDF/Word/ZIP）
 │   ├── icons.js / date.js  # 图标映射、日期工具
 └── styles/                 # variables.css / global.css
 ```
@@ -227,6 +231,7 @@ src/
 - **主题切换**：明亮 / 暗黑主题，设置通过 `theme` store 持久化（挂载前初始化避免闪烁）。
 - **操作日志联动**：页面访问与接口失败自动上报到后端 `sys_oper_log`，可在「系统监控 → 操作日志」查看。
 - **数据可视化**：统计页使用 ECharts 展示用户注册月/周趋势、概览卡片与最新用户列表；可视化大屏模块（机房监控大屏 + 全球航运大屏）提供沉浸式全屏数据监控，全球航运大屏基于 Three.js 实现 3D 地球（含高清纹理、夜间灯光、云层、大气光晕），支持航线飞线动画、点击下钻与 CSS2D 地名标注。详见 [四、可视化大屏](#四可视化大屏)。
+- **数据导出**：通过可复用的 `ExportDropdown` 组件，支持将任意列表数据导出为 **Excel (.xlsx)**、**PDF (.pdf)**、**Word (.docx)** 或 **ZIP 打包下载**（含以上三种格式）。PDF 基于 html2canvas 将 HTML 表格渲染为图片，完美支持中文；Word 基于 docx 库生成带格式的表格文档。用户管理页已集成，其他页面只需传入列定义与数据即可复用，详见 `src/utils/export.js`。导出时自动携带搜索条件、数据自动脱敏（如密码字段）。
 
 ### 3.4 开发 / 构建
 
@@ -518,6 +523,10 @@ sms:
    ```
    浏览器打开 `http://localhost:5173`。
 4. 生产部署：前端 `npm run build` 后将 `dist/` 由 Nginx 托管（反向代理 `/api` 到后端 8080），后端以 `prod` 环境运行。
+
+#### Docker / 1Panel 部署注意
+
+- **时区问题**：容器默认时区为 UTC，代码已通过 `AdminApplication` 启动时强制设置 `TimeZone.setDefault("Asia/Shanghai")`，同时建议在 1Panel 容器环境变量中添加 `TZ=Asia/Shanghai`，双重保障操作日志时间正确。
 
 ### 7.4 IP 归属地解析
 
