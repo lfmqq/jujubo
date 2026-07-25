@@ -62,6 +62,9 @@ public class DataInitializer implements ApplicationRunner {
 
         // 7. 确保定时任务模块菜单
         ensureJobMenus();
+
+        // 8. 确保字典管理模块菜单
+        ensureDictMenus();
     }
 
     /**
@@ -438,5 +441,22 @@ public class DataInitializer implements ApplicationRunner {
         rm.setRoleId(1L);
         rm.setMenuId(btn.getId());
         roleMenuMapper.insert(rm);
+    }
+
+    /** 确保字典管理模块菜单 */
+    private void ensureDictMenus() {
+        // 查找「系统管理」目录
+        List<SysMenu> systemDirs = menuMapper.selectList(
+                new LambdaQueryWrapper<SysMenu>()
+                        .eq(SysMenu::getMenuName, "系统管理")
+                        .eq(SysMenu::getType, 0));
+        if (systemDirs.isEmpty()) return;
+        Long dirId = systemDirs.get(0).getId();
+
+        Long dictId = ensureMenu(dirId, "字典管理", "/system/dict", "system/dict/index",
+                "system:dict:list", "Collection", 5);
+        ensureButton(dictId, "system:dict:add", "字典新增", 1);
+        ensureButton(dictId, "system:dict:edit", "字典编辑", 2);
+        ensureButton(dictId, "system:dict:remove", "字典删除", 3);
     }
 }

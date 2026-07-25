@@ -89,6 +89,7 @@ com.admin
 │   ├── UserController             # 用户管理 + 个人信息 + 改密 / 重置密码
 │   ├── RoleController             # 角色管理
 │   ├── DeptController             # 部门管理
+│   ├── DictController             # 字典管理（类型列表/分页 + 数据分页/批量删除）
 │   ├── MenuController             # 菜单管理（树、用户菜单、用户权限、启停）
 │   ├── NotifyMessageController    # 通知管理
 │   ├── OperLogController          # 操作日志（含前端日志上报接口）
@@ -100,7 +101,7 @@ com.admin
 │   ├── GenController              # 代码生成
 │   └── SysJobController           # 定时任务管理
 ├── entity/                        # 数据实体
-│   ├── SysUser / SysRole / SysDept / SysMenu
+│   ├── SysUser / SysRole / SysDept / SysMenu / SysDictType / SysDictData
 │   ├── SysUserRole / SysRoleMenu  # 关联表
 │   ├── SysNotifyMessage / SysOperLog
 │   ├── IotProduct / IotDevice / IotDeviceData  # IoT 物联网
@@ -143,6 +144,7 @@ com.admin
 |------|------|------|
 | 认证 | `POST /auth/login`、`POST /auth/login/code`、`POST /auth/send-code`、`POST /auth/logout`、`GET /auth/captcha` | 密码登录、验证码登录、发送验证码、登出、图形验证码 |
 | 用户 | `/system/user/page`、`/system/user/{id}`、`POST /system/user`、`PUT /system/user`、`DELETE /system/user/{id}`、`/system/user/profile`、`/system/user/reset-password/{id}`、`GET /system/user/export` | 分页、详情、增改删、个人信息、重置密码、导出全量数据 |
+| 字典 | `/system/dict/type/list`、`/system/dict/type/page`、`POST/PUT/DELETE /system/dict/type`、`/system/dict/data/page`、`POST/PUT/DELETE /system/dict/data`、`DELETE /system/dict/data/batch` | 左侧类型列表（支持关键词搜索）、类型分页与增改删、字典数据分页与增改删、批量删除数据 |
 | 角色 | `/system/role/...` | 角色增删改查与权限分配 |
 | 部门 | `/system/dept/...` | 部门树 |
 | 菜单 | `/system/menu/tree`、`/system/menu/user-menu`、`/system/menu/user-permissions`、`POST/PUT/DELETE`、`/system/menu/toggle-status` | 菜单树、用户菜单、用户权限列表（含按钮级权限标识）、启停 |
@@ -211,6 +213,7 @@ src/
 │   │   ├── role/           # 角色管理
 │   │   ├── dept/           # 部门管理
 │   │   ├── menu/           # 菜单管理
+│   │   ├── dict/           # 字典管理（类型 + 数据联动，支持后端搜索）
 │   │   └── notify/         # 通知管理
 │   └── redirect.vue        # 重定向 / 404 兜底
 ├── stores/                 # Pinia：user（Token/信息）、menu（动态菜单/权限列表）、tagsView、theme
@@ -232,6 +235,7 @@ src/
 - **操作日志联动**：页面访问与接口失败自动上报到后端 `sys_oper_log`，可在「系统监控 → 操作日志」查看。
 - **数据可视化**：统计页使用 ECharts 展示用户注册月/周趋势、概览卡片与最新用户列表；可视化大屏模块（机房监控大屏 + 全球航运大屏）提供沉浸式全屏数据监控，全球航运大屏基于 Three.js 实现 3D 地球（含高清纹理、夜间灯光、云层、大气光晕），支持航线飞线动画、点击下钻与 CSS2D 地名标注。详见 [四、可视化大屏](#四可视化大屏)。
 - **数据导出**：通过可复用的 `ExportDropdown` 组件，支持将任意列表数据导出为 **Excel (.xlsx)**、**PDF (.pdf)**、**Word (.docx)** 或 **ZIP 打包下载**（含以上三种格式）。PDF 基于 html2canvas 将 HTML 表格渲染为图片，完美支持中文；Word 基于 docx 库生成带格式的表格文档。用户管理页已集成，其他页面只需传入列定义与数据即可复用，详见 `src/utils/export.js`。导出时自动携带搜索条件、数据自动脱敏（如密码字段）。
+- **字典管理**：维护系统字典类型（如用户性别、系统开关、通知类型等）及对应数据项；类型与数据两级联动，点击类型行即可查看和管理其下的字典键值，支持新增/编辑/删除/搜索、排序、默认值与状态控制。
 
 ### 3.4 开发 / 构建
 
@@ -506,6 +510,12 @@ sms:
 > - `create_time` / `update_time` 由 `MyMetaObjectHandler` 自动填充；
 > - `sys_menu` 含 `parent_id / menu_name / path / component / perms / type(0目录 1菜单 2按钮) / icon / sort / visible / always_show / status` 等字段。
 > 应用启动后 `DataInitializer` 会自动补全 admin 角色与菜单关联，无需手工处理。
+>
+> 若已有数据库，可执行增量脚本添加字典模块：
+> ```bash
+> mysql -u root -p manager_system < sql/update_dict.sql
+> ```
+> 增量脚本包含：`sys_dict_type`（字典类型表）、`sys_dict_data`（字典数据表）、字典管理菜单与按钮权限（`system:dict:list/add/edit/remove`），以及三条内置字典（用户性别、系统开关、通知类型）。
 
 ### 7.3 启动步骤
 
