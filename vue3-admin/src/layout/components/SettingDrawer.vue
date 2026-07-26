@@ -113,6 +113,17 @@
         </div>
       </div>
 
+      <!-- 水印配置 -->
+      <div class="setting-section">
+        <div class="section-title">水印</div>
+        <el-input
+          v-model="watermarkText"
+          placeholder="请输入水印文字，留空则不显示"
+          clearable
+          @change="themeStore.setWatermark(watermarkText)"
+        />
+      </div>
+
       <!-- 操作按钮 -->
       <div class="setting-actions">
         <el-button type="primary" class="action-btn" @click="copyConfig">
@@ -128,7 +139,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Check, Sunny, Moon, CopyDocument, Plus } from '@element-plus/icons-vue'
 import {
@@ -140,6 +151,11 @@ import {
 
 const visible = ref(false)
 const themeStore = useThemeStore()
+const watermarkText = ref(themeStore.watermark)
+
+watch(() => themeStore.watermark, (val) => {
+  watermarkText.value = val
+})
 
 const layouts = [
   { name: '左侧菜单', value: 'vertical' },
@@ -180,7 +196,8 @@ const copyConfig = async () => {
     primaryColor: themeStore.primaryColor,
     headerTheme: themeStore.headerTheme,
     menuTheme: themeStore.menuTheme,
-    layout: themeStore.layout
+    layout: themeStore.layout,
+    watermark: themeStore.watermark
   }
   const text = JSON.stringify(config, null, 2)
   try {
@@ -208,6 +225,7 @@ const resetConfig = () => {
   localStorage.removeItem('theme_header')
   localStorage.removeItem('theme_menu')
   localStorage.removeItem('theme_layout')
+  localStorage.removeItem('theme_watermark')
   ElMessage.success('已清除缓存，即将刷新页面')
   setTimeout(() => location.reload(), 600)
 }

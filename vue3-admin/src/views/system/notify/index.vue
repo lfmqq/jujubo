@@ -110,7 +110,7 @@
 
     <!-- 查看详情弹窗 -->
     <el-dialog v-model="detailVisible" title="通知详情" width="600px">
-      <el-descriptions :column="1" border>
+      <el-descriptions :column="1" border label-width="100">
         <el-descriptions-item label="标题">{{ detail.title }}</el-descriptions-item>
         <el-descriptions-item label="类型">
           <el-tag :type="getDictObj(DICT_TYPE.SYSTEM_NOTICE_TYPE, detail.type)?.colorType" size="small">

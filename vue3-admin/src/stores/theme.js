@@ -41,7 +41,8 @@ export const useThemeStore = defineStore('theme', {
     primaryColor: loadTheme('theme_primary', '#4f6ef7'),
     headerTheme: loadTheme('theme_header', '#ffffff'),
     menuTheme: loadTheme('theme_menu', '#1a2332'),
-    layout: loadTheme('theme_layout', 'vertical')
+    layout: loadTheme('theme_layout', 'vertical'),
+    watermark: loadTheme('theme_watermark', '')
   }),
   actions: {
     toggle() {
@@ -72,6 +73,11 @@ export const useThemeStore = defineStore('theme', {
     setLayout(layout) {
       this.layout = layout
       localStorage.setItem('theme_layout', layout)
+    },
+
+    setWatermark(text) {
+      this.watermark = text
+      localStorage.setItem('theme_watermark', text)
     },
 
     /** 应用初始化时调用：恢复所有主题配置 */

@@ -47,6 +47,9 @@
 
     <!-- 项目配置入口 -->
     <SettingFloatButton @click="settingDrawerRef?.open()" />
+
+    <!-- 全局水印 -->
+    <Watermark :text="themeStore.watermark" />
   </div>
 </template>
 
@@ -59,6 +62,7 @@ import HorizontalSidebar from './components/HorizontalSidebar.vue'
 import TagsView from './components/TagsView.vue'
 import SettingDrawer from './components/SettingDrawer.vue'
 import SettingFloatButton from './components/SettingFloatButton.vue'
+import Watermark from '@/components/Watermark.vue'
 import { useTagsViewStore } from '@/stores/tagsView'
 import { useThemeStore } from '@/stores/theme'
 
