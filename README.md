@@ -144,7 +144,7 @@ com.admin
 |------|------|------|
 | 认证 | `POST /auth/login`、`POST /auth/login/code`、`POST /auth/send-code`、`POST /auth/logout`、`GET /auth/captcha` | 密码登录、验证码登录、发送验证码、登出、图形验证码 |
 | 用户 | `/system/user/page`、`/system/user/{id}`、`POST /system/user`、`PUT /system/user`、`DELETE /system/user/{id}`、`/system/user/profile`、`/system/user/reset-password/{id}`、`GET /system/user/export` | 分页、详情、增改删、个人信息、重置密码、导出全量数据 |
-| 字典 | `/system/dict/type/list`、`/system/dict/type/page`、`POST/PUT/DELETE /system/dict/type`、`/system/dict/data/page`、`POST/PUT/DELETE /system/dict/data`、`DELETE /system/dict/data/batch` | 左侧类型列表（支持关键词搜索）、类型分页与增改删、字典数据分页与增改删、批量删除数据 |
+| 字典 | `/system/dict/type/list`、`/system/dict/type/page`、`POST/PUT/DELETE /system/dict/type`、`/system/dict/data/list`、`/system/dict/data/page`、`POST/PUT/DELETE /system/dict/data`、`DELETE /system/dict/data/batch` | 左侧类型列表（搜索）、类型分页与增改删、字典数据全量（缓存用）、数据分页与增改删、批量删除 |
 | 角色 | `/system/role/...` | 角色增删改查与权限分配 |
 | 部门 | `/system/dept/...` | 部门树 |
 | 菜单 | `/system/menu/tree`、`/system/menu/user-menu`、`/system/menu/user-permissions`、`POST/PUT/DELETE`、`/system/menu/toggle-status` | 菜单树、用户菜单、用户权限列表（含按钮级权限标识）、启停 |

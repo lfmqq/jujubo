@@ -113,6 +113,19 @@ public class DictController {
 
     // ==================== 字典数据 ====================
 
+    /**
+     * 根据字典类型获取所有字典数据（不分页，供前端字典工具类缓存使用）
+     */
+    @GetMapping("/data/list")
+    @PreAuthorize("hasAuthority('system:dict:list')")
+    public Result<List<SysDictData>> dataList(@RequestParam String typeCode) {
+        LambdaQueryWrapper<SysDictData> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysDictData::getTypeCode, typeCode);
+        wrapper.eq(SysDictData::getStatus, 1);
+        wrapper.orderByAsc(SysDictData::getSort);
+        return Result.success(dictDataService.list(wrapper));
+    }
+
     @GetMapping("/data/page")
     @PreAuthorize("hasAuthority('system:dict:list')")
     public Result<Page<SysDictData>> dataPage(

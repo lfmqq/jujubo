@@ -8,9 +8,12 @@
         </el-form-item>
         <el-form-item label="通知类型">
           <el-select v-model="queryParams.type" placeholder="请选择类型" clearable style="width: 140px;">
-            <el-option label="系统通知" :value="1" />
-            <el-option label="提醒" :value="2" />
-            <el-option label="私信" :value="3" />
+            <el-option
+              v-for="item in getIntDictOptions(DICT_TYPE.SYSTEM_NOTICE_TYPE)"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            />
           </el-select>
         </el-form-item>
         <el-form-item label="阅读状态">
@@ -37,8 +40,8 @@
         <el-table-column label="通知标题" prop="title" min-width="200" show-overflow-tooltip />
         <el-table-column label="通知类型" width="100" align="center">
           <template #default="scope">
-            <el-tag :type="typeTagMap[scope.row.type]" size="small">
-              {{ typeMap[scope.row.type] }}
+            <el-tag :type="getDictObj(DICT_TYPE.SYSTEM_NOTICE_TYPE, scope.row.type)?.colorType" size="small">
+              {{ getDictLabel(DICT_TYPE.SYSTEM_NOTICE_TYPE, scope.row.type) }}
             </el-tag>
           </template>
         </el-table-column>
@@ -85,9 +88,11 @@
         </el-form-item>
         <el-form-item label="通知类型" prop="type">
           <el-radio-group v-model="form.type">
-            <el-radio :value="1">系统通知</el-radio>
-            <el-radio :value="2">提醒</el-radio>
-            <el-radio :value="3">私信</el-radio>
+            <el-radio
+              v-for="item in getIntDictOptions(DICT_TYPE.SYSTEM_NOTICE_TYPE)"
+              :key="item.value"
+              :value="item.value"
+            >{{ item.label }}</el-radio>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="接收者" prop="receiverId">
@@ -108,7 +113,9 @@
       <el-descriptions :column="1" border>
         <el-descriptions-item label="标题">{{ detail.title }}</el-descriptions-item>
         <el-descriptions-item label="类型">
-          <el-tag :type="typeTagMap[detail.type]" size="small">{{ typeMap[detail.type] }}</el-tag>
+          <el-tag :type="getDictObj(DICT_TYPE.SYSTEM_NOTICE_TYPE, detail.type)?.colorType" size="small">
+            {{ getDictLabel(DICT_TYPE.SYSTEM_NOTICE_TYPE, detail.type) }}
+          </el-tag>
         </el-descriptions-item>
         <el-descriptions-item label="内容">{{ detail.content }}</el-descriptions-item>
         <el-descriptions-item label="阅读状态">
@@ -126,6 +133,7 @@ import { ref, computed, onMounted } from 'vue'
 import request from '@/utils/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Refresh, Plus, Delete, View, Check } from '@element-plus/icons-vue'
+import { getIntDictOptions, getDictLabel, getDictObj, DICT_TYPE } from '@/utils/dict'
 
 const tableData = ref([])
 const total = ref(0)
@@ -150,9 +158,6 @@ const formRules = {
   title: [{ required: true, message: '请输入通知标题', trigger: 'blur' }],
   content: [{ required: true, message: '请输入通知内容', trigger: 'blur' }]
 }
-
-const typeMap = { 1: '系统通知', 2: '提醒', 3: '私信' }
-const typeTagMap = { 1: '', 2: 'warning', 3: 'success' }
 
 const hasUnread = computed(() => tableData.value.some(r => r.readStatus === 0))
 
