@@ -1,4 +1,4 @@
-# 生产环境配置 - 云服务器 159.75.182.200
+# 生产环境配置 - 云服务器 106.54.237.201
 # 线上经 nginx 等反向代理时，识别 X-Forwarded-* 头，使 request.getRemoteAddr() 返回真实客户端 IP
 # （操作日志的真实 IP 解析主要在 IpUtil 中手动读取这些头，这里额外保证 Spring 内部一致）
 server:
@@ -7,13 +7,14 @@ server:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/manager_system?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
-    username: root
-    password: root
+    url: jdbc:mysql://mysql:3306/manager_system?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    username: jujubo
+    password: 123456
   data:
     redis:
-      host: 127.0.0.1
+      host: redis
       port: 6379
+      password: 123w456w789w
       database: 0
       timeout: 10000ms
   # 邮箱配置（用于发送邮箱验证码）
@@ -31,7 +32,7 @@ spring:
             required: true
 
 upload:
-  path: ./uploads/
+  path: /app/uploads/
 
 # 生产环境不打印 SQL（需要时改为 StdOutImpl）
 mybatis-plus:

@@ -1,0 +1,67 @@
+name: jujubo-system
+
+services:
+  backend:
+    image: jujubo-system-backend:latest
+    build:
+      context: ./springboot3-admin
+    restart: unless-stopped
+    init: true
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      TZ: Asia/Shanghai
+      JAVA_TOOL_OPTIONS: -Xms256m -Xmx512m -XX:+UseG1GC -Duser.timezone=Asia/Shanghai
+    volumes:
+      - uploads-data:/app/uploads
+    networks:
+      - app-network
+      - shared-services
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/api/doc.html"]
+      interval: 15s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web:
+    image: jujubo-system-web:latest
+    build:
+      context: ./vue3-admin
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  uploads-data:
+
+networks:
+  app-network:
+    driver: bridge
+  shared-services:
+    external: true
+    name: shared-services
