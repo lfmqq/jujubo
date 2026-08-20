@@ -3,24 +3,13 @@
     <div class="login-box">
       <!-- 左侧 Banner -->
       <div class="login-banner">
+        <div class="banner-orbit orbit-one"></div>
+        <div class="banner-orbit orbit-two"></div>
         <div class="banner-content">
           <img src="/logo.png" class="banner-logo" alt="logo" />
           <h1 class="banner-title">桔桔波管理系统</h1>
-          <p class="banner-desc">基于SpringBoot3 + Vue3 的后台管理系统</p>
-          <div class="banner-features">
-            <div class="feature-item">
-              <el-icon><Check /></el-icon> RBAC 权限模型
-            </div>
-            <div class="feature-item">
-              <el-icon><Check /></el-icon> Spring Security 6
-            </div>
-            <div class="feature-item">
-              <el-icon><Check /></el-icon> MyBatis-Plus
-            </div>
-            <div class="feature-item">
-              <el-icon><Check /></el-icon> JWT + Redis
-            </div>
-          </div>
+          <p class="banner-desc">让每一次管理，都更简单高效</p>
+          <div class="banner-slogan"><span></span> 专注 · 协作 · 成长 <span></span></div>
         </div>
       </div>
 
@@ -166,7 +155,7 @@ import { useUserStore } from '@/stores/user'
 import { useMenuStore } from '@/stores/menu'
 import request from '@/utils/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { User, Lock, Check, Picture, Phone, Message } from '@element-plus/icons-vue'
+import { User, Lock, Picture, Phone, Message } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -386,15 +375,33 @@ onMounted(getCaptcha)
 
 <style scoped>
 .login-container {
+  position: relative;
+  overflow: hidden;
   height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #1e293b 0%, #1a2332 40%, #4f6ef7 100%);
+  background: linear-gradient(120deg, #111827 0%, #172554 52%, #3730a3 100%);
 }
 
+.login-container::before,
+.login-container::after {
+  content: '';
+  position: absolute;
+  width: 360px;
+  height: 360px;
+  border: 1px solid rgba(129, 140, 248, 0.22);
+  border-radius: 50%;
+  animation: drift 14s ease-in-out infinite;
+}
+.login-container::before { top: -180px; left: -90px; box-shadow: 0 0 0 34px rgba(129, 140, 248, 0.04), 0 0 0 70px rgba(129, 140, 248, 0.03); }
+.login-container::after { right: -140px; bottom: -220px; animation-delay: -7s; }
+@keyframes drift { 0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); } 50% { transform: translate3d(28px, -18px, 0) rotate(12deg); } }
+
 .login-box {
+  position: relative;
+  z-index: 1;
   display: flex;
   width: 900px;
   min-height: 500px;
@@ -402,12 +409,16 @@ onMounted(getCaptcha)
   border-radius: 12px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   overflow: hidden;
+  animation: card-in 0.75s cubic-bezier(.22, 1, .36, 1) both;
 }
+@keyframes card-in { from { opacity: 0; transform: translateY(24px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 /* 左侧 Banner */
 .login-banner {
+  position: relative;
+  overflow: hidden;
   width: 400px;
-  background: linear-gradient(135deg, #4f6ef7, #6366f1);
+  background: linear-gradient(145deg, #4f46e5 0%, #6366f1 48%, #7c3aed 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -415,9 +426,13 @@ onMounted(getCaptcha)
 }
 
 .banner-content {
+  position: relative;
+  z-index: 1;
   color: #fff;
   text-align: center;
+  animation: content-in 0.9s 0.15s both;
 }
+@keyframes content-in { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
 .banner-logo {
   width: 90px;
@@ -443,19 +458,20 @@ onMounted(getCaptcha)
   margin-bottom: 32px;
 }
 
-.banner-features {
-  text-align: left;
-  display: inline-block;
-}
-
-.feature-item {
+.banner-slogan {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  opacity: 0.85;
-  margin-bottom: 10px;
+  justify-content: center;
+  gap: 10px;
+  font-size: 12px;
+  opacity: .78;
+  letter-spacing: 2px;
 }
+.banner-slogan span { width: 24px; height: 1px; background: rgba(255,255,255,.6); }
+.banner-orbit { position: absolute; border: 1px solid rgba(255,255,255,.16); border-radius: 50%; animation: orbit 10s linear infinite; }
+.orbit-one { width: 280px; height: 280px; right: -150px; top: -100px; }
+.orbit-two { width: 180px; height: 180px; left: -100px; bottom: -80px; animation-direction: reverse; }
+@keyframes orbit { to { transform: rotate(360deg); } }
 
 /* 右侧登录表单 */
 .login-form {
@@ -464,7 +480,9 @@ onMounted(getCaptcha)
   display: flex;
   flex-direction: column;
   justify-content: center;
+  animation: form-in 0.8s 0.12s both;
 }
+@keyframes form-in { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: translateX(0); } }
 
 .form-header {
   margin-bottom: 8px;
@@ -557,6 +575,7 @@ onMounted(getCaptcha)
   bottom: 16px;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.5);
+  z-index: 1;
 }
 
 /* 响应式 */
@@ -579,5 +598,15 @@ onMounted(getCaptcha)
     width: 110px;
     font-size: 12px;
   }
+}
+
+@media (max-width: 600px) {
+  .login-box { width: calc(100vw - 32px); min-height: 0; }
+  .login-banner { min-height: 190px; padding: 28px 20px; }
+  .banner-logo { width: 64px; height: 64px; margin-bottom: 12px; }
+  .banner-title { font-size: 25px; }
+  .banner-desc { margin-bottom: 14px; }
+  .login-form { padding: 28px 22px 24px; }
+  .login-footer { font-size: 10px; }
 }
 </style>
