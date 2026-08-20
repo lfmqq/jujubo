@@ -32,7 +32,6 @@ system/
 │   ├── src/main/java/        # Java 源码
 │   ├── src/main/resources/   # 配置文件、MyBatis Mapper XML
 │   ├── target/               # 构建产物（含可执行 jar）
-│   ├── uploads/              # 文件上传目录（运行时生成）
 │   ├── pom.xml               # Maven 构建文件
 │   └── build.log
 ├── vue3-admin/               # 前端：Vue 3 管理后台
@@ -45,7 +44,6 @@ system/
 │   └── package.json
 ├── sql/
 │   └── manager_system.sql    # 数据库建表与初始化脚本
-├── uploads/                  # 根级上传目录
 └── README.md
 ```
 
@@ -66,7 +64,7 @@ system/
 | 持久层 | MyBatis-Plus 3.5.7（MySQL 8） |
 | 安全框架 | Spring Security 6（无状态 / JWT） |
 | 缓存 | Redis（spring-boot-starter-data-redis） |
-| 工具 | Hutool 5.8.25、Lombok、Jackson（jsr310 时间支持） |
+| 工具 | Hutool 5.8.25、Lombok、Jackson（jsr310 时间支持）、MinIO Java SDK 8.5.17 |
 | 鉴权令牌 | JJWT 0.11.5 |
 | 接口文档 | Knife4j OpenAPI3（4.5.0，访问 `/doc.html`） |
 | 其他 | spring-boot-starter-validation（参数校验）、spring-boot-starter-aop（操作日志切面） |
@@ -74,8 +72,8 @@ system/
 ### 2.2 核心配置
 
 - `application.yml`：全局配置，激活环境 `dev`（部署改为 `prod`），服务端口 `8080`，`context-path=/api`，文件上传上限 10MB/20MB，JWT 密钥与过期时间（默认 24h）。
-- `application-dev.yml`：本地开发，MySQL `localhost:3306/manager_system`，Redis `127.0.0.1:6379`，开启 SQL 控制台日志，上传目录 `./uploads/`。
-- `application-prod.yml`：生产环境（服务器 `159.75.182.200`），通过 `forward-headers-strategy: native` 获取真实客户端 IP，关闭 SQL 日志。
+- `application-dev.yml`：本地开发，MySQL `localhost:3306/manager_system`，Redis `127.0.0.1:6379`，开启 SQL 控制台日志。
+- `application-prod.yml`：生产环境（服务器 `159.75.182.200`），通过 `forward-headers-strategy: native` 获取真实客户端 IP，关闭 SQL 日志；使用 MinIO 对象存储。
 - 切换环境：`java -jar xxx.jar --spring.profiles.active=prod`
 
 ### 2.3 包结构（`com.admin`）
@@ -154,7 +152,7 @@ com.admin
 | IoT 物联网 | `/iot/product/page`、`/iot/product/list`、`/iot/product/{id}`、`POST/PUT/DELETE`、`/iot/device/page`、`/iot/device/{id}`、`/iot/device/{id}/data`、`POST/PUT/DELETE` | 产品与设备管理、设备最新数据查询 |
 | 代码生成 | `/tool/gen/page`、`/tool/gen/{id}`、`POST /tool/gen/code/{id}` | 代码生成表分页、详情、生成代码 |
 | 统计 | `/statistics/overview`、`/statistics/user-trend`、`/statistics/user-trend-week`、`/statistics/latest-users` | 概览、月/周趋势、最新用户 |
-| 文件 | `POST /file/upload` | 文件上传（返回可访问路径） |
+| 文件 | `POST /common/upload`、`GET /uploads/{文件名}` | 文件上传及文件流式访问（生产环境由 MinIO 保存） |
 
 > 接口文档（Knife4j）：启动后访问 `http://localhost:8080/api/doc.html`
 
@@ -494,6 +492,7 @@ sms:
 - MySQL 8（数据库名 `manager_system`）
 - Redis 6+
 - Node.js 18+（前端）
+- MinIO RELEASE.2025-04-22T22-12-26Z（统一对象存储）
 
 ### 7.2 数据库初始化
 
@@ -537,6 +536,14 @@ sms:
 #### Docker / 1Panel 部署注意
 
 - **时区问题**：容器默认时区为 UTC，代码已通过 `AdminApplication` 启动时强制设置 `TimeZone.setDefault("Asia/Shanghai")`，同时建议在 1Panel 容器环境变量中添加 `TZ=Asia/Shanghai`，双重保障操作日志时间正确。
+
+#### MinIO 对象存储
+
+- `compose.yml` 已固定使用 `minio/minio:RELEASE.2025-04-22T22-12-26Z`，后端通过内部地址 `http://minio:9000` 访问；MinIO API 不映射到宿主机，控制台通过宿主机 `9001` 端口访问。
+- 启动 Compose 前需要配置 `MYSQL_PASSWORD`、`REDIS_PASSWORD`、`MINIO_ROOT_USER`、`MINIO_ROOT_PASSWORD` 四个环境变量，其中 MinIO 密码至少 8 位；可选配置 `MINIO_BUCKET`，默认桶名为 `jujubo-system`。
+- 生产环境执行 `docker compose up -d --build` 后，上传接口仍为 `POST /api/common/upload`，文件访问地址仍为 `/uploads/{文件名}`，浏览器不会接触 MinIO 密钥。
+- 开发和生产环境均使用 MinIO，请按 `MINIO_ENDPOINT`、`MINIO_ACCESS_KEY`、`MINIO_SECRET_KEY`、`MINIO_BUCKET` 配置连接信息。
+- 公网管理地址为 `http://服务器IP:9001`，部署时还需在云安全组和服务器防火墙中放行 TCP `9001`。
 
 ### 7.4 IP 归属地解析
 

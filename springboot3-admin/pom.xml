@@ -19,6 +19,7 @@
 		<mybatis-plus.version>3.5.7</mybatis-plus.version>
 		<hutool.version>6.5.0</hutool.version>
 		<jjwt.version>0.11.5</jjwt.version>
+		<minio.version>8.5.17</minio.version>
 	</properties>
 
 	<dependencies>
@@ -119,6 +120,13 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-jsr310</artifactId>
+		</dependency>
+
+		<!-- MinIO Java 客户端；服务端镜像版本固定在 RELEASE.2025-04-22T22-12-26Z -->
+		<dependency>
+			<groupId>io.minio</groupId>
+			<artifactId>minio</artifactId>
+			<version>${minio.version}</version>
 		</dependency>
 
 	</dependencies>

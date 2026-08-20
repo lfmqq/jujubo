@@ -9,12 +9,12 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://mysql:3306/manager_system?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
     username: jujubo
-    password: 123456
+    password: ${SPRING_DATASOURCE_PASSWORD}
   data:
     redis:
       host: redis
       port: 6379
-      password: 123w456w789w
+      password: ${SPRING_DATA_REDIS_PASSWORD}
       database: 0
       timeout: 10000ms
   # 邮箱配置（用于发送邮箱验证码）
@@ -30,9 +30,6 @@ spring:
           starttls:
             enable: true
             required: true
-
-upload:
-  path: /app/uploads/
 
 # 生产环境不打印 SQL（需要时改为 StdOutImpl）
 mybatis-plus:

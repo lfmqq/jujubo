@@ -17,8 +17,7 @@ RUN apk add --no-cache tzdata \
 
 WORKDIR /app
 
-RUN mkdir -p /app/uploads \
-    && chown -R spring:spring /app
+RUN chown -R spring:spring /app
 
 COPY --from=builder --chown=spring:spring /workspace/target/springboot3-admin-*.jar /app/app.jar
 

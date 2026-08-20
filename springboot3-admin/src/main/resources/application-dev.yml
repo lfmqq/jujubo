@@ -2,13 +2,16 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/manager_system?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
-    username: root
-    password: 123456
+    # 本地通过 SSH 隧道连接服务器：ssh -N -L 13306:127.0.0.1:3306 ubuntu@106.54.237.201
+    url: jdbc:mysql://127.0.0.1:13306/manager_system?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&allowMultiQueries=true
+    username: jujubo
+    password: ${SPRING_DATASOURCE_PASSWORD}
   data:
     redis:
+      # Redis 使用同一 SSH 会话的 16379 本地转发端口
       host: 127.0.0.1
-      port: 6379
+      port: 16379
+      password: ${SPRING_DATA_REDIS_PASSWORD}
       database: 0
       timeout: 10000ms
   # 邮箱配置（用于发送邮箱验证码，开发环境可留空，邮件不会真实发送）
@@ -24,9 +27,6 @@ spring:
           starttls:
             enable: true
             required: true
-
-upload:
-  path: ./uploads/
 
 # 开发环境打印 SQL 日志
 mybatis-plus:
