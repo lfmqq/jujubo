@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -114,28 +115,58 @@ public class IpUtil {
 
     private static class CacheEntry {
         final String location;
+        final String city;
+        final Double latitude;
+        final Double longitude;
         final long expireAt;
 
-        CacheEntry(String location, long expireAt) {
+        /**
+         * 创建 IP 查询缓存项。
+         *
+         * @param location 完整归属地文本
+         * @param city 城市名称
+         * @param latitude 纬度
+         * @param longitude 经度
+         * @param expireAt 过期时间戳
+         */
+        CacheEntry(String location, String city, Double latitude, Double longitude, long expireAt) {
             this.location = location;
+            this.city = city;
+            this.latitude = latitude;
+            this.longitude = longitude;
             this.expireAt = expireAt;
         }
     }
 
     /**
+     * IP 归属地及天气定位所需的坐标。
+     *
+     * @param location 完整归属地文本
+     * @param city 城市名称
+     * @param latitude 纬度
+     * @param longitude 经度
+     */
+    public record IpLocation(String location, String city, Double latitude, Double longitude) {
+    }
+
+    /**
      * 通过 ip-api.com 在线查询 IP 归属地。
      * 返回格式示例：{"country":"China","regionName":"Guangdong","city":"Shenzhen"}
+     *
+     * @param ip 客户端公网 IP
+     * @return IP 归属地缓存项，查询失败时返回无坐标项
      */
-    private static String resolveByOnlineApi(String ip) {
+    private static CacheEntry resolveByOnlineApi(String ip) {
         // 查缓存
         CacheEntry cached = IP_CACHE.get(ip);
         if (cached != null && System.currentTimeMillis() < cached.expireAt) {
-            return cached.location;
+            return cached;
         }
 
         try {
             HttpURLConnection conn = (HttpURLConnection) URI.create(
-                    "http://ip-api.com/json/" + ip + "?lang=zh-CN&fields=country,regionName,city"
+                    "http://ip-api.com/json/" + ip
+                            + "?lang=zh-CN&fields=status,message,country,regionName,city,lat,lon"
             ).toURL().openConnection();
             conn.setConnectTimeout(3000);
             conn.setReadTimeout(3000);
@@ -143,9 +174,12 @@ public class IpUtil {
             conn.connect();
 
             if (conn.getResponseCode() != 200) {
-                return UNKNOWN_LOCATION;
+                return new CacheEntry(UNKNOWN_LOCATION, "", null, null, 0L);
             }
             JsonNode root = MAPPER.readTree(conn.getInputStream());
+            if (!"success".equalsIgnoreCase(root.path("status").asText())) {
+                return new CacheEntry(UNKNOWN_LOCATION, "", null, null, 0L);
+            }
             String country = root.path("country").asText("");
             String region = root.path("regionName").asText("");
             String city = root.path("city").asText("");
@@ -155,12 +189,21 @@ public class IpUtil {
             if (!region.isEmpty()) sb.append(region);
             if (!city.isEmpty()) sb.append(city);
             String location = sb.length() > 0 ? sb.toString() : UNKNOWN_LOCATION;
+            Double latitude = root.path("lat").isNumber() ? root.path("lat").asDouble() : null;
+            Double longitude = root.path("lon").isNumber() ? root.path("lon").asDouble() : null;
 
             // 写入缓存
-            IP_CACHE.put(ip, new CacheEntry(location, System.currentTimeMillis() + CACHE_TTL_MS));
-            return location;
+            CacheEntry entry = new CacheEntry(
+                    location,
+                    city,
+                    latitude,
+                    longitude,
+                    System.currentTimeMillis() + CACHE_TTL_MS
+            );
+            IP_CACHE.put(ip, entry);
+            return entry;
         } catch (Exception e) {
-            return UNKNOWN_LOCATION;
+            return new CacheEntry(UNKNOWN_LOCATION, "", null, null, 0L);
         }
     }
 
@@ -230,7 +273,24 @@ public class IpUtil {
             }
         }
         // 2) 在线 API 降级
-        return resolveByOnlineApi(ip);
+        return resolveByOnlineApi(ip).location;
+    }
+
+    /**
+     * 根据公网 IP 查询城市及经纬度，供天气服务进行城市级定位。
+     *
+     * @param ip 客户端公网 IP
+     * @return 查询到完整坐标时返回归属地，否则返回空
+     */
+    public static Optional<IpLocation> resolveCoordinatesByIp(String ip) {
+        if (!StringUtils.hasText(ip) || isInnerIp(ip)) {
+            return Optional.empty();
+        }
+        CacheEntry entry = resolveByOnlineApi(ip);
+        if (entry.latitude == null || entry.longitude == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new IpLocation(entry.location, entry.city, entry.latitude, entry.longitude));
     }
 
     /**

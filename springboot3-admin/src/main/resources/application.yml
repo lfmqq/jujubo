@@ -34,3 +34,16 @@ minio:
   access-key: ${MINIO_ACCESS_KEY:minioadmin}
   secret-key: ${MINIO_SECRET_KEY:minioadmin}
   bucket: ${MINIO_BUCKET:jujubo-system}
+
+# 和风天气配置（API Host 和 API KEY 均从和风天气控制台获取）
+weather:
+  qweather:
+    enabled: ${QWEATHER_ENABLED:false}
+    dynamic-location: ${QWEATHER_DYNAMIC_LOCATION:true}
+    api-host: ${QWEATHER_API_HOST:}
+    api-key: ${QWEATHER_API_KEY:}
+    location-name: ${QWEATHER_LOCATION_NAME:北京}
+    latitude: ${QWEATHER_LATITUDE:39.92}
+    longitude: ${QWEATHER_LONGITUDE:116.41}
+    forecast-days: ${QWEATHER_FORECAST_DAYS:5}
+    cache-seconds: ${QWEATHER_CACHE_SECONDS:1800}
